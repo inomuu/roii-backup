@@ -19,7 +19,7 @@ namespace Roi.UI
 {
     public sealed class ClearSummary : MonoBehaviour
     {
-        const float RowH = 34f, Countdown = 10f;
+        const float RowH = 27f, Countdown = 10f;
 
         Roi.Sim.SimDriver _driver;
         RectTransform _panel, _rows;
@@ -46,22 +46,41 @@ namespace Roi.UI
             root.anchorMin = Vector2.zero; root.anchorMax = Vector2.one;
             root.offsetMin = Vector2.zero; root.offsetMax = Vector2.zero;
 
-            var scrim = UiTheme.Flat(root, "Scrim",new Color(.018f,.045f,.052f,.975f));
+            var scrim = UiTheme.Flat(root, "Scrim",new Color(.025f,.055f,.060f,.985f));
             var sr=scrim.rectTransform;sr.anchorMin=Vector2.zero;sr.anchorMax=Vector2.one;sr.offsetMin=sr.offsetMax=Vector2.zero;
-            _panel=ExemplarUi.Rect(root,"ResultContent",.20f,.10f,.80f,.88f);
-            ExemplarUi.Icon(_panel,"Apex",.44f,.83f,.56f,1,UiTheme.Accent);
-            ExemplarUi.Panel(_panel,"HeaderRule",.04f,.83f,.96f,.832f,new Color(.8f,.84f,.63f,.34f));
-            _title=ExemplarUi.Text(_panel,"Title","",0,.70f,1,.82f,30,UiTheme.Accent);
-            _title.alignment=TextAlignmentOptions.Center;
-            var host=ExemplarUi.Rect(_panel,"ResultScroll",.06f,.23f,.94f,.67f);
+            _panel=ExemplarUi.Rect(root,"ResultContent",.22f,.14f,.78f,.86f);
+            var glow=UiTheme.Flat(_panel,"ResultGlow",Color.white);
+            glow.sprite=ResultGlow();glow.raycastTarget=false;
+            ExemplarUi.Place(glow.rectTransform,.12f,.76f,.88f,.94f);
+            _title=ExemplarUi.Text(_panel,"Title","",0,.72f,1,.83f,26,UiTheme.Accent);
+            _title.alignment=TextAlignmentOptions.Center;UiTheme.Display(_title);
+            var host=ExemplarUi.Rect(_panel,"ResultScroll",.12f,.25f,.88f,.66f);
             _rows=UiScroll.Create(host,out _);
             ExemplarUi.Panel(_panel,"FooterRule",.04f,.17f,.96f,.172f,UiTheme.LineStrong);
-            var leave=HudBar.MakeButton(_panel,Loc.Get("UI_CLEAR_SUMMARY_LEAVE"),"",180,UiLayout.Touch,Leave);
-            var lr=(RectTransform)leave.transform;lr.anchorMin=new Vector2(.12f,0);lr.anchorMax=new Vector2(.47f,.105f);lr.offsetMin=lr.offsetMax=Vector2.zero;
-            var again=HudBar.MakeGhostButton(_panel,Loc.Get("UI_CLEAR_SUMMARY_RUN_IT_AGAIN"),180,UiLayout.Touch,Retry);
-            var ar=(RectTransform)again.transform;ar.anchorMin=new Vector2(.53f,0);ar.anchorMax=new Vector2(.88f,.105f);ar.offsetMin=ar.offsetMax=Vector2.zero;
+            var leave=HudBar.MakeGhostButton(_panel,Loc.Get("UI_CLEAR_SUMMARY_LEAVE"),180,UiLayout.Touch,Leave,16);
+            var lr=(RectTransform)leave.transform;lr.anchorMin=new Vector2(.24f,.035f);lr.anchorMax=new Vector2(.48f,.10f);lr.offsetMin=lr.offsetMax=Vector2.zero;
+            var again=HudBar.MakeGhostButton(_panel,Loc.Get("UI_CLEAR_SUMMARY_RUN_IT_AGAIN"),180,UiLayout.Touch,Retry,16);
+            var ar=(RectTransform)again.transform;ar.anchorMin=new Vector2(.52f,.035f);ar.anchorMax=new Vector2(.76f,.10f);ar.offsetMin=ar.offsetMax=Vector2.zero;
             _timer=ExemplarUi.Text(_panel,"Timer","",0,.11f,1,.16f,UiTheme.CaptionSize,UiTheme.TextLow);
             _timer.alignment=TextAlignmentOptions.Center;
+        }
+
+        static Sprite _glow;
+        static Sprite ResultGlow() {
+            if(_glow!=null)return _glow;
+            var t=new Texture2D(128,32,TextureFormat.RGBA32,false);
+            t.hideFlags=HideFlags.HideAndDontSave;t.wrapMode=TextureWrapMode.Clamp;
+            var pixels=new Color[128*32];
+            for(int y=0;y<32;y++)for(int x=0;x<128;x++) {
+                float u=(x-63.5f)/64f,v=(y-15.5f)/16f;
+                float a=Mathf.Exp(-u*u*9-v*v*18)*.22f;
+                a=Mathf.Max(a,Mathf.Clamp01(1-Mathf.Abs(u)*70-Mathf.Abs(v)*1.4f));
+                a=Mathf.Max(a,Mathf.Clamp01(1-Mathf.Abs(u)*5-Mathf.Abs(v)*35)*.7f);
+                pixels[y*128+x]=new Color(.82f,.87f,.65f,a);
+            }
+            t.SetPixels(pixels);t.Apply();
+            _glow=Sprite.Create(t,new Rect(0,0,128,32),new Vector2(.5f,.5f));
+            _glow.hideFlags=HideFlags.HideAndDontSave;return _glow;
         }
 
         /// Fed the same view the arena reads.
@@ -123,12 +142,12 @@ namespace Roi.UI
 
         void Stat(ref float y, string label, string value)
         {
-            var stripe=UiTheme.Flat(_rows,"StatRow",new Color(.20f,.30f,.32f,.10f));Place(stripe.rectTransform,y);_built.Add(stripe.gameObject);
-            var l = UiTheme.Label(_rows, "S_" + label, label, UiTheme.BodySize, UiTheme.TextMid,
+            var stripe=UiTheme.Flat(_rows,"StatRow",new Color(.20f,.30f,.32f,.045f));Place(stripe.rectTransform,y);_built.Add(stripe.gameObject);
+            var l = UiTheme.Label(_rows, "S_" + label, label, 16, UiTheme.TextMid,
                                   TextAlignmentOptions.Left);
             Place(l.rectTransform, y);
             _built.Add(l.gameObject);
-            var v = UiTheme.Label(_rows, "V_" + label, value, UiTheme.BodySize, UiTheme.Accent,
+            var v = UiTheme.Label(_rows, "V_" + label, value, 16, UiTheme.Accent,
                                   TextAlignmentOptions.Right);
             Place(v.rectTransform, y);
             _built.Add(v.gameObject);

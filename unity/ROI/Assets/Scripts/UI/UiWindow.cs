@@ -85,7 +85,7 @@ namespace Roi.UI
             ar.pivot = new Vector2(0.5f, 0.5f);
             ar.localRotation = Quaternion.Euler(0, 0, 45);
             ar.sizeDelta = new Vector2(6f, 6f);
-            ar.anchoredPosition = new Vector2(76f, 0f);
+            ar.anchoredPosition = new Vector2(28f, 0f);
 
             _titleText = UiTheme.Label(bar, "Title", title, UiTheme.TitleSize,
                                       UiTheme.TextHigh, TextAlignmentOptions.Left);
@@ -94,7 +94,7 @@ namespace Roi.UI
             UiTheme.Display(_titleText);_titleText.fontSize=25;
             var tr = _titleText.rectTransform;
             tr.anchorMin = new Vector2(0f, 0f); tr.anchorMax = new Vector2(1f, 1f);
-            tr.offsetMin = new Vector2(104f, 0f);
+            tr.offsetMin = new Vector2(48f, 0f);
             tr.offsetMax = new Vector2(-320f, 0f);
 
             var rule = UiTheme.Flat(bar, "Rule", UiTheme.Line);
@@ -103,17 +103,6 @@ namespace Roi.UI
             rr.anchorMin = new Vector2(0f, 0f); rr.anchorMax = new Vector2(1f, 0f);
             rr.pivot = new Vector2(0.5f, 0f);
             rr.sizeDelta = new Vector2(-UiTheme.Pad * 2f, 1f);
-
-            // Leading back control stays clear of the persistent Menu/Inventory actions.
-            // Keep its hit area at 44 reference units even though the glyph is smaller.
-            var close = HudBar.MakeGhostButton(bar, "‹", UiLayout.Touch, UiLayout.Touch, onClose, 28f);
-            var cr = close.GetComponent<RectTransform>();
-            cr.anchorMin = cr.anchorMax = new Vector2(0f, 0.5f);
-            cr.pivot = new Vector2(0f, 0.5f);
-            cr.anchoredPosition = new Vector2(UiTheme.Pad, 0f);
-            var closeLabel=close.GetComponentInChildren<TextMeshProUGUI>();
-            closeLabel.enableAutoSizing=false;closeLabel.alignment=TextAlignmentOptions.Center;
-            closeLabel.rectTransform.offsetMin=closeLabel.rectTransform.offsetMax=Vector2.zero;
 
             var bodyGo = new GameObject("Body", typeof(RectTransform));
             bodyGo.transform.SetParent(_rect, false);
@@ -134,9 +123,9 @@ namespace Roi.UI
         {
             var bar=_rect.Find("TitleBar");bar.Find("Accent").gameObject.SetActive(false);
             var go=new GameObject("ScreenIcon",typeof(RectTransform));go.transform.SetParent(bar,false);
-            var icon=go.AddComponent<HomeIcon>();icon.Kind=id;icon.color=UiTheme.Accent;icon.raycastTarget=false;
-            var r=icon.rectTransform;r.anchorMin=r.anchorMax=new Vector2(0,.5f);r.anchoredPosition=new Vector2(84,0);r.sizeDelta=new Vector2(24,24);
-            _titleText.rectTransform.offsetMin=new Vector2(112,0);
+            var icon=go.AddComponent<HomeIcon>();icon.Kind=id;icon.color=_titleText.color;icon.raycastTarget=false;
+            var r=icon.rectTransform;r.anchorMin=r.anchorMax=new Vector2(0,.5f);r.anchoredPosition=new Vector2(28,0);r.sizeDelta=new Vector2(24,24);
+            _titleText.rectTransform.offsetMin=new Vector2(52,0);
             if(id=="Cards"||id=="Album"||id=="Character"||id=="Skills"||id=="Regalia")
                 PartyMemberPicker.Create((RectTransform)bar,_titleText);
         }

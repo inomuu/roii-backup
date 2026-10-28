@@ -24,7 +24,7 @@ namespace Roi.UI
 {
     public sealed class EventsWindow : MonoBehaviour
     {
-        const float RowH = 40f, CellH = 86f, Gap = 12f;
+        const float RowH = 40f, CellH = 74f, Gap = 10f;
 
         RectTransform _content, _footer;
         TextMeshProUGUI _status;
@@ -51,6 +51,7 @@ namespace Roi.UI
         void Build(RectTransform body)
         {
             float pad = UiTheme.PadLarge;
+            ActivityBackdrop.Add(body);
             PeriodWindow.ActivityRail(body,"Events");
             _footer=ExemplarUi.Rect(body,"EventActions",.115f,0,.97f,0);_footer.sizeDelta=new Vector2(0,84);_footer.pivot=new Vector2(.5f,0);_footer.anchoredPosition=new Vector2(0,12);
             _status = UiTheme.Label(body, "Status", "", UiTheme.CaptionSize, UiTheme.TextLow,
@@ -135,13 +136,13 @@ namespace Roi.UI
                 {
                     bool ready = c.state == "claimable";
                     bool got = c.state == "claimed";
-                    var row=UiTheme.Box(_content,$"C_{t.track}_{c.id}",new Color(.43f,.52f,.55f,.85f));
-                    UiTheme.Border(row.rectTransform,ready?UiTheme.Accent:UiTheme.LineStrong);
+                    var row=UiTheme.Box(_content,$"C_{t.track}_{c.id}",new Color(.70f,.74f,.74f,.95f));
+                    UiTheme.Border(row.rectTransform,new Color(.85f,.9f,.89f,.4f));
                     Place(row.rectTransform,y,CellH);_built.Add(row.gameObject);
-                    ExemplarUi.Icon(row.transform,"Events",.025f,.20f,.09f,.80f,ready||got?UiTheme.Accent:UiTheme.TextHigh);
-                    var what=ExemplarUi.Text(row.transform,"Rewards",Rewards(c.reward),.12f,.40f,.83f,.90f,UiTheme.BodySize,UiTheme.TextHigh);
-                    what.enableAutoSizing=true;what.fontSizeMin=12;what.fontSizeMax=UiTheme.BodySize;
-                    ExemplarUi.Text(row.transform,"Day",$"Day {c.at}",.12f,.08f,.83f,.38f,UiTheme.CaptionSize,UiTheme.TextMid);
+                    PeriodWindow.RewardArt(row.transform,.015f,.08f,.105f,.92f);
+                    var what=ExemplarUi.Text(row.transform,"Rewards",Rewards(c.reward),.16f,.40f,.83f,.90f,UiTheme.BodySize,new Color(.07f,.12f,.13f));
+                    what.fontStyle=FontStyles.Bold;what.enableAutoSizing=true;what.fontSizeMin=12;what.fontSizeMax=UiTheme.BodySize;
+                    ExemplarUi.Text(row.transform,"Day",$"Day {c.at}",.16f,.08f,.83f,.38f,UiTheme.CaptionSize,new Color(.16f,.23f,.24f));
                     ActivityStatus.Add(row.transform,.87f,.15f,.97f,.85f,got,ready);
                     y += CellH + Gap;
                 }

@@ -1416,9 +1416,9 @@ public sealed partial class UiGalleryRunner : MonoBehaviour
         foreach(var window in UnityEngine.Object.FindObjectsByType<UiWindow>(FindObjectsSortMode.None))
         {
             if(!window.IsOpen)continue;
-            var back=window.transform.Find("Panel/TitleBar/Ghost_‹").GetComponent<Button>();
-            back.onClick.Invoke();
-            if(window.IsOpen)Debug.LogError("UI GALLERY: back button did not close its screen");
+            if(window.transform.Find("Panel/TitleBar/Ghost_‹")!=null)Debug.LogError("UI GALLERY: removed header arrow is still present");
+            bar.Toggle("Shop");
+            if(window.IsOpen)Debug.LogError("UI GALLERY: menu toggle did not close its screen");
             break;
         }
         bar.Toggle("Shop");

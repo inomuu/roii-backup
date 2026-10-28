@@ -58,12 +58,7 @@ namespace Roi.UI
             _rosterRule=ExemplarUi.Panel(transform,"RosterRule",RosterLeft,.887f,RosterRight,.889f,ExemplarUi.Line).gameObject;
             ExemplarUi.Panel(transform,"HeaderSurface",0,.902f,1,1,UiTheme.Header);
             ExemplarUi.Panel(transform,"HeaderRule",0,.901f,1,.902f,UiTheme.Line);
-            var back=CollectionBrowser.Quiet(transform,"Back","\u2039",.0445f,.942f,.0445f,.942f,Back);
-            ((RectTransform)back.transform).sizeDelta=new Vector2(56,56);
-            var backLabel=back.GetComponentInChildren<TextMeshProUGUI>();backLabel.fontSize=34;backLabel.fontSizeMax=34;
-            backLabel.fontSizeMin=34;backLabel.enableAutoSizing=false;backLabel.alignment=TextAlignmentOptions.Center;
-            ExemplarUi.Place(backLabel.rectTransform,0,0,1,1);
-            _pageTitle=ExemplarUi.Text(transform,"PageTitle",Loc.Get("UI_HOME_EXEMPLARS"),.106f,.919f,.68f,.972f,28,ExemplarUi.White);
+            _pageTitle=ExemplarUi.Text(transform,"PageTitle",Loc.Get("UI_HOME_EXEMPLARS"),.025f,.919f,.68f,.972f,28,ExemplarUi.White);
             _overview=ExemplarOverview.Create(transform,SelectPage);
             for(int i=0;i<PageIds.Length;i++)
             {

@@ -25,3 +25,17 @@ No application tests were run for this source-transfer task. No deployment is pa
 The first Cloud upload deliberately omits art, reference/review images, archives, legacy Godot client files, and Unity visual assets/scenes. It includes Rust, Unity C# scripts and Editor tools, project/package settings, localization source, game data, and Markdown documentation. This is suitable for code work and Rust tests, but is NOT a complete runnable Unity project or release build.
 
 The full original snapshot remains locally on branch `local/full-source-snapshot` at d0aaba76b88fa5b0cdc01bcf7b4ee9b4922626db. All omitted files remain on disk. `CLOUD_OMITTED_FILES.txt` lists paths omitted from the first upload; restore them from the local full snapshot in a separate upload before Unity visual testing or release builds. Do not recreate missing assets or delete their references as a fix.
+
+## UI update — 2026-10-29
+
+Latest UI work is in the Unity client:
+- Shared paper-white dialogs with dark captions and black capsule actions (`DialogSurface`, `UiTheme`, `CodexButtonImage`, already included in the prior sync).
+- Removed leading header back arrows from UiWindow, CollectionBrowser and ExemplarScreen; shifted headings left and matched header icon color to text. UiGalleryProbe now checks the removed arrow and uses the existing menu toggle.
+- Dungeon result overlay: narrower statistics, smaller actions, procedural light ornament; original leave/retry and timer behavior retained. Background is dimmed, not blurred.
+- Daily/Weekly/Events: light task cards, dark text, teal gradient and icon rail. Daily/Weekly reward milestones invoke the existing Claim endpoint (which claims all eligible rungs); no invented per-task points. Events retains its own actual claim conditions.
+
+Validation: local C# compilation succeeded during UI work; desktop/compact gallery and online-fixture captures ran. These are NOT clean all-pass tests: Unity MainToolbarWindow layout instability produces repeated errors, and some older gallery fixtures fail to open the intended modal. Title journey previously passed 71 interaction/layout checks. No real-account authentication, purchases or server claims were verified.
+
+Local review gallery: D:/roii/ui-summary-20261028/activity-reference.html (self-contained 168-image HTML; not uploaded). Capture commands use the local .roi_cmd bridge and UiGalleryProbe entry points; do not assume this Windows setup exists on Cloud.
+
+Asset limitation: Resources/HomeUI/ActivityMedallion-v1.png and other visuals remain part of the intentionally deferred local asset set. Restore required original assets before visual testing; do not replace missing artwork with invented data. Read CLOUD_OMITTED_FILES.txt. This update preserves the source-only upload scope.

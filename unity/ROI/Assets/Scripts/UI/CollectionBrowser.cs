@@ -78,8 +78,7 @@ namespace Roi.UI
             ExemplarUi.Panel(transform,"Veil",0,0,1,1,UiTheme.WithAlpha(UiTheme.Panel,.18f));
             _safe=ExemplarUi.Rect(transform,"SafeContent",0,0,1,1);
             ExemplarUi.Panel(_safe,"HeaderSurface",0,.887f,1,1,UiTheme.Header);
-            Quiet(_safe,"Back","‹",.012f,.883f,.075f,.998f,()=>Back?.Invoke());
-            _title=ExemplarUi.Text(_safe,"Title","",.095f,.895f,.65f,.985f,38,UiTheme.TextHigh);
+            _title=ExemplarUi.Text(_safe,"Title","",.025f,.895f,.65f,.985f,38,UiTheme.TextHigh);
             Quiet(_safe,"Tools",Loc.Get(pickerKey()),.76f,.883f,.985f,.998f,()=>Tools?.Invoke());
             ExemplarUi.Panel(_safe,"HeaderRule",.025f,.887f,.975f,.8885f,new Color(.46f,.50f,.48f,.4f));
             _count=Copy(_safe,"Count","",.14f,.813f,.60f,.874f,27,UiTheme.TextMid);

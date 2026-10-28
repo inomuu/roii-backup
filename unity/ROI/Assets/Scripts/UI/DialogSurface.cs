@@ -35,12 +35,12 @@ namespace Roi.UI {
             }
             foreach(var label in GetComponentsInChildren<TMP_Text>(true)) {
                 var button=label.GetComponentInParent<Button>();
-                bool inButton=button!=null&&button.transform.IsChildOf(transform);
+                bool inButton=button!=null&&button.transform!=transform&&button.transform.IsChildOf(transform);
                 label.color=inButton?Color.white:Ink;
                 if(!inButton&&(label.name=="Title"||label.name=="Head"||label.name=="Heading")) {
                     label.alignment=TextAlignmentOptions.MidlineLeft;
                     label.font=UiTheme.Font;label.fontSharedMaterial=UiTheme.Font.material;
-                    label.margin=Vector4.zero;
+                    label.margin=label.rectTransform.offsetMin.x < 1 ? new Vector4(24,0,24,0) : Vector4.zero;
                     if(label.transform.Find("NoticeDivider")==null){
                         var line=UiTheme.Flat(label.transform,"NoticeDivider",new Color(.25f,.29f,.30f,.22f));
                         line.raycastTarget=false;
@@ -50,6 +50,7 @@ namespace Roi.UI {
                 }
             }
             foreach(var button in GetComponentsInChildren<Button>(true)) {
+                if(button.transform==transform)continue;
                 var image=button.GetComponent<Image>();
                 if(image==null)continue;
                 if(button.name=="Close") {

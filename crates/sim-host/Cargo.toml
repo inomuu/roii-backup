@@ -1,0 +1,17 @@
+[package]
+name = "sim-host"
+version = "0.0.0"
+edition = "2021"
+
+# Everything a HOST BRIDGE must do identically, whatever the engine: the client-facing view JSON
+# (`view_state`, `item_view`) and the session lifecycle (start / load / tick / apply input /
+# export a replayable SaveBundle / re-anchor after the server confirms). `godot-ext` (gdext) and
+# `sim-ffi` (plain C ABI, for Unity or any C host) are both thin wrappers over this crate, so the
+# two bridges cannot drift into different contracts — before this crate existed, sim-ffi had
+# quietly fallen 99 methods behind SimBridge and could not even produce a verifiable bundle.
+#
+# No engine types here. `#![forbid(unsafe_code)]` like sim-core.
+
+[dependencies]
+sim-core = { path = "../sim-core" }
+serde_json = { workspace = true }

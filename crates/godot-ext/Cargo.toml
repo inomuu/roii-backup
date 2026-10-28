@@ -1,0 +1,17 @@
+[package]
+name = "godot-ext"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+# `cdylib` so Godot can dlopen this as a GDExtension.
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[dependencies]
+sim-core = { path = "../sim-core" }
+sim-host = { path = "../sim-host" }
+godot = "0.2"
+serde_json = { workspace = true }

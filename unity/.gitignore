@@ -1,0 +1,32 @@
+# Unity project (unity/ROI) — generated/local only
+ROI/[Ll]ibrary/
+ROI/[Tt]emp/
+ROI/[Oo]bj/
+ROI/[Bb]uild/
+ROI/[Bb]uilds/
+ROI/[Ll]ogs/
+ROI/[Uu]ser[Ss]ettings/
+ROI/*.csproj
+ROI/*.sln
+ROI/.vs/
+ROI/.idea/
+# native plugin binaries are built, not committed (cargo build -p sim-ffi --release)
+ROI/Assets/Plugins/**/*.dylib
+# Built by tools/build_mac_plugin.sh from native/macos/roi_window.m — the SOURCE is the artifact
+# worth keeping, and a committed binary is one nobody re-signs when the source changes. The .meta
+# stays tracked so Unity keeps the plugin's import settings.
+ROI/Assets/Plugins/macOS/roi_window.bundle/
+ROI/Assets/Plugins/**/*.dll
+ROI/Assets/Plugins/**/*.so
+# RemoteControl.cs command file (terminal -> Editor)
+ROI/.roi_cmd
+
+# Paid Asset Store packs: usable in the game, NOT redistributable — never commit them.
+ROI/Assets/Idyllic Fantasy Nature/
+ROI/Assets/Idyllic Fantasy Nature.meta
+ROI/Assets/Hovl Studio/
+ROI/Assets/Hovl Studio.meta
+# The Cubism SDK ships under Live2D's own licence and is 79 MB of third-party runtime — same rule.
+# NOT the model beside it: Assets/Live2D/TestModels is OUR commissioned character and is committed.
+ROI/Assets/Live2D/Cubism/
+ROI/Assets/Live2D/Cubism.meta

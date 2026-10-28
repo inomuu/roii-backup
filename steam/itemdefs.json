@@ -1,0 +1,22 @@
+{
+  "appid": 4958230,
+  "items": [
+    {
+      "itemdefid": 1001,
+      "type": "item",
+      "name": "Farm Banner Box",
+      "name_english": "Farm Banner Box",
+      "name_thai": "กล่อง Farm Banner",
+      "description": "Forged from the armor of the Dulahaness, cold blue flame still leaking from its seams. Open it in ROI: Reign of Idlers.",
+      "description_thai": "หลอมจากชุดเกราะของ Dulahaness ไฟสีฟ้าเย็นยังรั่วออกมาจากร่อง เปิดได้ในเกม ROI: Reign of Idlers",
+      "display_type": "Farm Banner Box",
+      "background_color": "1B2233",
+      "name_color": "7FC8FF",
+      "icon_url": "https://renrei-idle-server.fly.dev/steam/icon/farm_box.png",
+      "icon_url_large": "https://renrei-idle-server.fly.dev/steam/icon/farm_box_large.png",
+      "tradable": false,
+      "marketable": false,
+      "commodity": false
+    }
+  ]
+}

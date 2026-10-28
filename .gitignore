@@ -1,0 +1,103 @@
+# Godot 4+
+godot/.godot/
+godot/android/
+# gdext binary output: produced by `cargo build -p godot-ext` then
+# copied here by the dev. Don't commit binaries — rebuild from source.
+godot/bin/
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Local secrets — never committed, never printed. Tooling reads these by
+# REFERENCE (`$(cat .secrets/dev_key)`) so the value stays out of shell history,
+# terminal output and any transcript. The server itself takes DEV_KEY from the
+# environment (fly secrets); these files are only the local caller's copy.
+.secrets/
+.env
+.env.*
+*.key
+!*.key.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Claude Code config. Per-user/per-machine state stays out (settings.local.json holds
+# one person's permission allow-list, skills/ is scratch) — but SHARED GUARDS are checked in:
+# settings.json carries the PreToolUse hook that blocks `timeout`, which macOS does not have
+# (the command silently never runs, so a grep for errors reports success). That guard is worth
+# nothing if a fresh clone doesn't get it. Both project roots are covered: the repo root and
+# godot/, since a session opened in either directory reads its own .claude/.
+.claude/*
+!.claude/settings.json
+godot/.claude/*
+!godot/.claude/settings.json
+
+# sim-cli output (regeneratable artifacts; pick a name to commit if needed)
+/progression_*.csv
+/*.csv
+/dist/
+godot/data/
+
+# Duelyst CC0 sprite set — full 697-unit set kept LOCAL for browsing
+# (godot/catalogue.tscn dev tool); only the units actually used in-game are
+# committed. To re-pick units, restore from /tmp/duelyst-test or the asset lib.
+/godot/addons/duelyst_animated_sprites/assets/spriteframes/units/*
+/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/*
+!/godot/addons/duelyst_animated_sprites/assets/spriteframes/units/neutral_mercmelee1.tres
+!/godot/addons/duelyst_animated_sprites/assets/spriteframes/units/neutral_mercmelee2.tres
+!/godot/addons/duelyst_animated_sprites/assets/spriteframes/units/neutral_mercmelee3.tres
+!/godot/addons/duelyst_animated_sprites/assets/spriteframes/units/neutral_mercmelee4.tres
+!/godot/addons/duelyst_animated_sprites/assets/spriteframes/units/neutral_contentiousbrute.tres
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee1.png
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee1.png.import
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee2.png
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee2.png.import
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee3.png
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee3.png.import
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee4.png
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_mercmelee4.png.import
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_contentiousbrute.png
+!/godot/addons/duelyst_animated_sprites/assets/spritesheets/units/neutral_contentiousbrute.png.import
+
+# Duelyst catalogue — local dev tool only (browses the full local set)
+/godot/catalogue.gd
+/godot/catalogue.gd.uid
+/godot/catalogue.tscn
+
+# godotsteam: vendor ONLY the platforms we actually ship — macOS (dev + editor) and Windows x64
+# (tools/export_windows.sh). The Android/Linux/win32 binaries are 73 MB of the addon's 93 MB and
+# nothing in this repo builds for them. If a platform is added, un-ignore its folder and commit it
+# — the addon must stay in-tree or a clean clone cannot export (see tools/export_windows.sh).
+/godot/addons/godotsteam/androidarm64/
+/godot/addons/godotsteam/linux32/
+/godot/addons/godotsteam/linux64/
+/godot/addons/godotsteam/linuxarm64/
+/godot/addons/godotsteam/win32/
+
+# python bytecode from the tools scripts
+__pycache__/
+
+# Machine-generated Unity and local tooling files
+/unity/ROI/[Ll]ibrary/
+/unity/ROI/[Tt]emp/
+/unity/ROI/[Oo]bj/
+/unity/ROI/[Ll]ogs/
+/unity/ROI/[Uu]ser[Ss]ettings/
+/unity/ROI/[Bb]uild/
+/unity/ROI/[Bb]uilds/
+/unity/ROI/*.csproj
+/unity/ROI/*.sln*
+/unity/ROI/.roi_*
+*.log
+/.mcp.json
+/.codex/
+*.pfx
+*.p12

@@ -1,0 +1,9 @@
+# Fire Trail Mask Generation
+
+Tool: built-in `image_gen.imagegen`, new image, no reference input.
+Project asset: `unity/ROI/Assets/Resources/Effects/Suzu/SuzuFireTrailMask-v1.png`.
+The generated bitmap is copied unchanged; no manual image retouching.
+
+## Exact Prompt
+
+Use case: stylized-concept. Asset type: production grayscale VFX texture mask for a Unity sword slash fire trail, not an illustration of a scene. Generate one wide 3:1 bitmap on a perfectly solid black background. White and light gray shapes are emission coverage, black is empty. A single unwrapped horizontal fire ribbon runs from a narrow wispy trailing end at LEFT to a denser hot rounded spearhead at RIGHT. The lower boundary is a relatively continuous smooth curving white backbone across the middle-lower part of the image. Along its TOP edge, 9-12 large irregular curling tongues of flame lift upward and bend backwards toward LEFT, each ends in an extremely sharp hooked tip. Cut black teardrop-shaped gaps and winding black slits between tongues so this reads as FIRE, not water, fur, smoke, electricity or parallel speed lines. Have several thin bright secondary flame filaments connecting the large tongues, and only 3 or 4 small detached sharp embers. The ribbon occupies nearly the full width but has at least 5 percent pure black padding on every border; all flame tips remain fully visible. Occupy the middle 75 percent of the height. Flat hand-painted anime game VFX silhouette, bold flowing sharp shapes, crisp high contrast edges, mostly white hot mass with only slight grayscale interior variation, no baked glow, no blur, no shadows, no lighting on background, no colored pixels, no sword, no character, no circle or crescent, no scene, no text, no UI, no checkerboard. This will be wrapped onto an arc mesh: keep the strip horizontal, not a drawn circular slash. Return only the finished mask.

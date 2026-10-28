@@ -1,0 +1,22 @@
+# verify-server lint config. Enforced by `#![deny(...)]` in main.rs — these fire under
+# `cargo clippy -p verify-server`, NOT under `cargo test`. `tools/deploy.sh` runs it before
+# `fly deploy` — that line is the only thing making these lints more than a suggestion.
+#
+# Why this crate and not just sim-core: sim-core's rules are about DETERMINISM (a float changes a
+# replay hash). These are about AVAILABILITY. The release profile sets `panic = "abort"`, so any
+# panic here does not fail one request — it takes the whole process down, and with
+# `min_machines_running = 0` the next player pays a cold start. A panic is an outage.
+
+disallowed-methods = [
+    # Go through `LockExt::held` instead: it decides ONCE what a poisoned mutex means, so no call
+    # site's safety is an unstated inference about `panic = "abort"` in Cargo.toml.
+    # (Only std's Mutex — `tokio::sync::Mutex::lock` is async, returns the guard, cannot poison.)
+    { path = "std::sync::Mutex::lock", reason = "use .held() — the poison policy lives in LockExt" },
+]
+
+# KNOWN GAP, measured not assumed: `map[&key]` on a BTreeMap/HashMap panics on a miss exactly like
+# `.unwrap()`, and NOTHING here catches it. `indexing_slicing` only sees slices and arrays (probed:
+# `v[0]` fires, `k[&1]` does not), and `disallowed-methods` cannot reach it either because `k[&1]`
+# desugars to `ExprKind::Index`, not a method call — the `std::ops::Index::index` entry was tried
+# and silently matched nothing. Four such sites existed in commodity.rs and were rewritten by hand.
+# A new one will not be rejected; it has to be caught in review.

@@ -1,0 +1,31 @@
+# Determinism invariants, made checkable.
+#
+# GDD §4.2 / CLAUDE.md state these as rules; until now nothing enforced them, and a rule that
+# only lives in prose is one an ordinary refactor can break without anyone noticing. All three
+# hold today, so turning them on costs nothing and stops the FIRST violation rather than the
+# tenth.
+#
+#   HashMap/HashSet — iteration order is unspecified, so anything that walks one can produce a
+#                     different result on another run or platform and the replay stops matching.
+#                     Use BTreeMap/BTreeSet.
+#   SystemTime/Instant — the sim advances on ticks. Reading the clock makes a replay depend on
+#                     WHEN it ran.
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "iteration order is unspecified — use BTreeMap (GDD §4.2 rule 4)" },
+    { path = "std::collections::HashSet", reason = "iteration order is unspecified — use BTreeSet (GDD §4.2 rule 4)" },
+    { path = "std::time::SystemTime", reason = "the sim runs on ticks; a clock read makes replay depend on when it ran" },
+    { path = "std::time::Instant", reason = "the sim runs on ticks; a clock read makes replay depend on when it ran" },
+    # "no threads" (CLAUDE.md). Concurrency makes the order work happens in a property of the
+    # scheduler, and the sim's whole contract is that order is a property of the code.
+    { path = "std::thread::JoinHandle", reason = "no threads in the sim — scheduling order would decide results (GDD §4.2)" },
+    # "no I/O". A socket in here is either a clock, a source of nondeterminism, or both.
+    { path = "std::net::TcpStream", reason = "sim-core does no I/O — callers own it" },
+    { path = "std::net::TcpListener", reason = "sim-core does no I/O — callers own it" },
+    { path = "std::net::UdpSocket", reason = "sim-core does no I/O — callers own it" },
+]
+
+# `thread::spawn` is a function, so the type ban above does not reach it.
+disallowed-methods = [
+    { path = "std::thread::spawn", reason = "no threads in the sim (GDD §4.2)" },
+    { path = "std::thread::sleep", reason = "the sim advances on ticks, never on wall time" },
+]

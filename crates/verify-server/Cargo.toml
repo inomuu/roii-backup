@@ -1,0 +1,34 @@
+[package]
+name = "verify-server"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "verify-server"
+path = "src/main.rs"
+
+[dependencies]
+sim-core = { path = "../sim-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+blake3 = { workspace = true }
+rand = "0.8"
+axum = { version = "0.7", features = ["ws"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+# Runtime query API (no compile-time DB needed → builds without DATABASE_URL).
+# rustls TLS: Neon requires SSL.
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres"] }
+# Outbound HTTP to Steam's Web API (AuthenticateUserTicket). rustls to match sqlx (no OpenSSL).
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+# WebSocket chat: split the socket + broadcast fan-out.
+futures-util = "0.3"
+
+# TEST ONLY. `tower::ServiceExt::oneshot` drives the real `Router` in-process — no socket, no
+# port. It exists so the money endpoints can be tested by CALLING them rather than by grepping
+# their source: an audit showed three guarantees on the settlement path were held by
+# `body.contains(..)` alone, and source scans in this crate have been defeated four times.
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

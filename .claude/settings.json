@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command // \"\"'); if printf '%s' \"$cmd\" | grep -Eq '(^|[|&;({]|\\$\\()[[:space:]]*g?timeout[[:space:]]'; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"BLOCKED: macOS has no timeout/gtimeout (BSD userland, no coreutils). The shell returns 127 and YOUR COMMAND NEVER RUNS - so piping it into grep prints 0 matches, which reads as PASSED but means NOTHING EXECUTED. Use the Bash tool timeout parameter (milliseconds) or run_in_background instead. Verify side effects (a written file, a .uid, a class-cache entry), not exit codes.\"}}'; fi; exit 0",
+            "statusMessage": "checking for timeout(1)"
+          }
+        ]
+      }
+    ]
+  }
+}

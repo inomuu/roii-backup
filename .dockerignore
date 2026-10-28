@@ -1,0 +1,19 @@
+# Keep the Docker build context small + fast. The build needs Cargo.toml/lock,
+# crates/, and data/game_data.json — nothing else.
+target/
+godot/
+docs/
+tools/
+.git/
+*.md
+scratchpad/
+# Claude Code state — agent worktrees (isolation: worktree) accumulate full repo checkouts here
+# (7.7 GB+), and none of it belongs in the server image. This alone was ~11 GB of build context.
+.claude/
+
+# Unity client assets and Library caches are not backend build inputs.
+unity/
+
+# Local credentials, save backups and packaged clients are never server inputs.
+.secrets/
+dist/

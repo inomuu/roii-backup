@@ -1,0 +1,40 @@
+# Fly.io config for the verify-server (S2/S3 replay-verify PoC).
+# Pick a UNIQUE app name (fly launch will prompt / edit this). Region sin = Singapore
+# (low latency to TH/SEA). scale-to-zero (min_machines_running = 0) keeps the TEST
+# deploy nearly free — first request after idle pays a ~1-2s cold start (fine for a
+# test; a real game server would set min_machines_running = 1).
+
+app = "renrei-idle-server"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # ONE MACHINE ONLY — this is a correctness constraint, not a cost setting.
+  #
+  # The market ledger is a shared in-memory structure guarded by process-local locks
+  # (`market_persist_lock` and the other `Arc<Mutex<..>>` in `AppState`). A second machine
+  # gets its own copy of both, so two settlements could interleave with neither lock seeing
+  # the other, and the last writer's snapshot would clobber the first's — a double-mint that
+  # only appears under load and only after a restart.
+  #
+  # Scaling out therefore requires moving that state into Postgres (advisory locks or
+  # SELECT ... FOR UPDATE on the ledger row) FIRST. See docs/economy-invariants.md.
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

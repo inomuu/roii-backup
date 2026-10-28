@@ -1,0 +1,162 @@
+[
+  {
+    "path": "Prefabs/Impact.prefab",
+    "guid": "057aa477789506a44bd206e9c5acad19",
+    "sha256": "3312b51db311065ce0d6ae6c71f2e85d2b34431742d88978831068536243f30a"
+  },
+  {
+    "path": "Textures/Gradient 4.png",
+    "guid": "0d046a8d6716a594c81a715d08f1ef50",
+    "sha256": "4b7178c783e70183049aee8aa6aac0f9687dee6ae8b8a98cfe1302eb4250237e"
+  },
+  {
+    "path": "Textures/Circle Fire_albedo.png",
+    "guid": "21568307615742e19ed9fba224f49f0b",
+    "sha256": "7b68b2363b9d72955629a083c1f53fd98d0483bea3986cbcfb5fcce75ff520e5"
+  },
+  {
+    "path": "Materials/Variations/Flying var Vertex.mat",
+    "guid": "31256510a50404e4e828097b505a4dd5",
+    "sha256": "96b17bc53df14aed652fc9819af7cbb4664fd0c52842e7d0adeeb7e1a6703609"
+  },
+  {
+    "path": "Textures/Crack 2.png",
+    "guid": "327b98847d260e348b5a0a164d9ebba9",
+    "sha256": "32382b505448066ea3bb41796cc6630454f8f4b91363c15d351cbe21c2d78412"
+  },
+  {
+    "path": "Shaders/ScrollUV.shadersubgraph",
+    "guid": "3b3e0bfc6d248ab4db35ec1efe08b0ca",
+    "sha256": "bbef1de8ac256f0514dd21aa3f86160538bf8e70c2d5104e17d31c2d45c17f0e"
+  },
+  {
+    "path": "Textures/Razengan_texture_3.png",
+    "guid": "3eec528b328a4bd89fc22f00eb652736",
+    "sha256": "67094e33ebbf65fb18f7aee9699eae22d7234419c8a8a9c4eccf17b0e2d7f2ef"
+  },
+  {
+    "path": "Shaders/Trail.shadergraph",
+    "guid": "4115401363447dc4a80ad55d19905407",
+    "sha256": "d78486f5e218dd8acdcbce5edf55d92c259a2e1a263e3b0243869313861fcdb4"
+  },
+  {
+    "path": "Model/Slash/Slash .fbx",
+    "guid": "44e7eb8b5ecd6bc498f00e168e155aa8",
+    "sha256": "36f3f70fe0201f378581c88129220301ee7e0708ab8fcf27ec39b641f92c0f4d"
+  },
+  {
+    "path": "Materials/Variations/Var 1.mat",
+    "guid": "4b85d26c457c8cd4484b2a0d59d2fcc5",
+    "sha256": "95e28f520eda0360e59d54d35a581239af7397729c1725399807a3584308f9ba"
+  },
+  {
+    "path": "Textures/Impact.png",
+    "guid": "4eff0d2d0da831849a9242f5331f8b64",
+    "sha256": "2da5a56aff3fadcb2bd7ca1b9ee2f489247368173d9774be9dd82e09cd10b132"
+  },
+  {
+    "path": "Prefabs/Slash Fire VFX.prefab",
+    "guid": "50f1354827c77ef4b99c4dca0ee3411d",
+    "sha256": "83bc243f0bd04be0502b30f46db44418679da03b0e98176779021363b57a368f"
+  },
+  {
+    "path": "Textures/Noise.png",
+    "guid": "5c233ff217284ddb8cb5c4a7f8b05731",
+    "sha256": "2f736724ca3a71f0e1b7cc9fcb4bb58bf42cefad85e3e6e9273d4d59be96b185"
+  },
+  {
+    "path": "Textures/Slash Noise_Slash Noise.png",
+    "guid": "5f9dc23532aa485498af34ddf39f045b",
+    "sha256": "ffb74d880c6d6816880aa8f05ebb9ed9376b93d7467818ce657cae49b7f78db4"
+  },
+  {
+    "path": "Shaders/Slash World.shadergraph",
+    "guid": "611663b87192dbd45be65b042f60fe5e",
+    "sha256": "92856f55cea4e64946f1d5224f4a651b43d317edd1fe976e28835053ec976b4a"
+  },
+  {
+    "path": "Materials/Variations/Impact Mat.mat",
+    "guid": "615e7bd5cafe2ff49b9f5fee5d0025a0",
+    "sha256": "a4d540080852d7e78dafe1303bc3e0b43af8402c81236ff6faa0f15b6b86644e"
+  },
+  {
+    "path": "Textures/Razengan_texture_2.png",
+    "guid": "64815c4876494b029a73f069f525d729",
+    "sha256": "bee10a7042c832d33ab79b8abd5a9b45bcac1bf7eafe9b21fb5914e7964a607f"
+  },
+  {
+    "path": "Shaders/Impact.shadergraph",
+    "guid": "680bc0248b1aeac48b87ca26169be1ec",
+    "sha256": "0ad30ea6825a95292e9ddb7cfcb6c37d1073f92d9fac1c5dc4cdbb1e7c4f4ee6"
+  },
+  {
+    "path": "Materials/Fire Version/Slash World Fire.mat",
+    "guid": "7173dc0334e13c8499e44ac372fb5208",
+    "sha256": "75512216cfd9a5973d6bbe97bf6df13d20d0e012d0e6ca57ed1fb55c83be3d26"
+  },
+  {
+    "path": "Textures/Noise_GrayScale/T_Lu_Noise_10.png",
+    "guid": "76fd5e990a3b7e84a85e37494f401685",
+    "sha256": "546a7b7b169ce9993f2d947674fbf0385ef887b34e3fab68b033018a14b0c985"
+  },
+  {
+    "path": "Materials/Slash.mat",
+    "guid": "7e2e93e5d515a73449b19b84a9dd6d90",
+    "sha256": "0d90bc709c0ab904e5a13c5de2f776e3b7751a56907d13e557326fe883a9cdf7"
+  },
+  {
+    "path": "Model/Smoke/SmokeSphere01.fbx",
+    "guid": "7f2c09fa4c36d064083944bc9331f95e",
+    "sha256": "139ec2ae1a181e93bb60de4b73fdb82c00cc97b7e9b36f3d246cd76a73b9a5d8"
+  },
+  {
+    "path": "Textures/Voronoi Noise 1_albedo.png",
+    "guid": "9399010bfbde4345a4a9ed2420404a5b",
+    "sha256": "8492a2cd7105398e601b8bba161cb71d04d51137c052069aa7a31b4ef015ad46"
+  },
+  {
+    "path": "Textures/Noise_GrayScale/T_Lu_Noise_29.png",
+    "guid": "98be8ffaee9a16d46951c44ec47a245b",
+    "sha256": "473f673d844b5c3e0c1aa79869dff8cfd91ec1c941206e09d70dda4ffee9facb"
+  },
+  {
+    "path": "Shaders/Flag.shadersubgraph",
+    "guid": "a0a7922fd28bffb4db4e772f1e73a921",
+    "sha256": "123f99ef69d21d634b0d468985bf40b1f0234f96818796c05cccc9a463760a3e"
+  },
+  {
+    "path": "Textures/Gradient 2.png",
+    "guid": "a6a320c52ceff3440ad3cf28d8155cfb",
+    "sha256": "10b924e9ea9e40af273118f841dada3165396f1e842b4009038292af0ce43a5c"
+  },
+  {
+    "path": "Shaders/Slash.shadergraph",
+    "guid": "c9f29e0077330d6409b9d521eb01a89c",
+    "sha256": "0d2eaccde8a97ccd18fd2d82746f64fc4789d20e1f166bd2a9897242068fe8e9"
+  },
+  {
+    "path": "Textures/Blue Noise_Blue Noise.png",
+    "guid": "cc787246631312346a9cdc3763379035",
+    "sha256": "735204a12107375904738f47f1500565fc2223b2575e6b4391b5dfb873983093"
+  },
+  {
+    "path": "Materials/Fire Version/Flying Particles Fire.mat",
+    "guid": "f051b5fa273139c458d846b2496fb8f2",
+    "sha256": "0191a61a2912c814cf5b12bb5eff405707119f444444fd600bad9db41f7ea7e2"
+  },
+  {
+    "path": "Textures/Noise Circle_albedo.png",
+    "guid": "f6446cef2231473fbf5ad32efe336831",
+    "sha256": "ec5dd9ec4bd1f78e05a4f587340a2428457be2d32bd86e119d2434c6c1c7ebd5"
+  },
+  {
+    "path": "Materials/Variations/Impact Mat 1.mat",
+    "guid": "ff09c317c5ede04418ae5e4fb2cb772f",
+    "sha256": "61e7cab9367cb13aff7abab83984f711f82e2f16f346176fb0050a1eb99de8a6"
+  },
+  {
+    "path": "Textures/Noise_GrayScale/T_Lu_Noise_31.png",
+    "guid": "ffcd96cc7a991ca4fa8a04b7e8fdaaa7",
+    "sha256": "09fe23b14335b9df9d16179d155aeec9a9c0015695b5d54ea9e4f30862afe68c"
+  }
+]

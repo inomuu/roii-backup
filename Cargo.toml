@@ -1,0 +1,52 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/sim-core",
+    "crates/sim-cli",
+    "crates/sim-host",
+    "crates/godot-ext",
+    "crates/sim-ffi",
+    "crates/verify-server",
+    "crates/lane-sim",
+]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.80"
+license = "UNLICENSED"
+repository = "https://github.com/lunalieneray/minimal-idle-mmo"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+blake3 = "1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+# Overflow must behave IDENTICALLY in dev and release: a silent release wrap
+# would let shipped saves diverge from dev/golden runs undetectably (the sim is
+# deterministic integer math — an overflow is a bug, never a feature). Costs a
+# few % CPU; the sim runs at ~µs/tick, we have room. (Matters more as the RO
+# late-game number inflation arrives — Lv200 era HP in the millions.)
+overflow-checks = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+overflow-checks = true
+# macOS defaults to "unpacked": every codegen unit's .o stays in target/debug/deps for the
+# debugger, and incremental renames CGUs per build, so they pile up (1.2M files, 48 GB, rustc
+# stalled for minutes listing the dir). "packed" writes one .dSYM per binary instead.
+split-debuginfo = "packed"
+
+# Test binaries inherit `dev` but drop full debug info. Each file in `crates/sim-core/tests/`
+# is its OWN crate → its own executable that static-links sim-core, so one lib edit relinks all
+# 17, and DWARF generation dominates that link on macOS. `line-tables-only` keeps file:line in
+# panics/backtraces (what the golden workflow actually reads) and costs only local-variable
+# inspection in a debugger. Inherits `overflow-checks = true` from dev — an overflow must still
+# panic in tests, never wrap.
+[profile.test]
+debug = "line-tables-only"

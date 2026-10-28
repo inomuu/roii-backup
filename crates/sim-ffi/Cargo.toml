@@ -1,0 +1,17 @@
+[package]
+name = "sim-ffi"
+version = "0.0.0"
+edition = "2021"
+
+# A PLAIN C-ABI cdylib over sim-core, for engines that are not Godot.
+#
+# `godot-ext` cannot serve this: it links the `godot` crate, so its symbols are gdext's, not C's.
+# This crate exists so the sim can be driven from Unreal (or anything with a C FFI) WITHOUT
+# sim-core learning that a second renderer exists — the same boundary the Godot bridge honours.
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+sim-core = { path = "../sim-core" }
+sim-host = { path = "../sim-host" }
+serde_json = "1"

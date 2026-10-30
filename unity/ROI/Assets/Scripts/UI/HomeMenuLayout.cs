@@ -5,8 +5,9 @@ using UnityEngine;
 
 namespace Roi.UI
 {
-    public sealed class HomeMenuLayout : MonoBehaviour
+    public sealed partial class HomeMenuLayout : MonoBehaviour
     {
+        static readonly string[] MoreEntries=new[]{"Map","Dungeon","Story","Daily","Weekly","Events","Pass","Commander","Outpost","Bestiary","Record","Paths","Cards","Stash","Album","Provisions","Regalia","Apothecary","Skills"};
         Action<string> _open;
         GameObject _group;
         GameObject _groupReturn;
@@ -32,52 +33,7 @@ namespace Roi.UI
         RectTransform _safe, _ledger;
         Vector2 _viewport;
         Rect _safeRect;
-        void Compose(RectTransform rt)
-        {
-            Panel(rt,"Ground",0,0,1,1,UiTheme.Panel);
-            Picture(rt,"Landscape","HomeUI/AnimeLobby",0,0,1,1,Color.white);
-            _safe=Panel(rt,"SafeContent",0,0,1,1,Color.clear).rectTransform;
-            var profile=Panel(_safe,"ProfilePlate",.02f,.88f,.265f,.977f,UiTheme.WithAlpha(UiTheme.Panel,.88f));
-            RoundedFrame(profile);
-            var portrait=Panel(profile.transform,"Portrait",0,-.06f,.235f,1.06f,Color.white);
-            portrait.sprite=UiTheme.Fill(64);portrait.gameObject.AddComponent<Mask>().showMaskGraphic=false;
-            var portraitImage=new GameObject("Art",typeof(RectTransform),typeof(RawImage));portraitImage.transform.SetParent(portrait.transform,false);
-            var face=portraitImage.GetComponent<RawImage>();face.texture=Resources.Load<Texture2D>("HomeUI/AnimeLobby");face.uvRect=new Rect(.35f,.59f,.22f,.38f);face.raycastTarget=false;
-            Place(face.rectTransform,0,0,1,1);
-            var portraitEdge=UiTheme.Border(portrait.rectTransform,Gold,64);portraitEdge.sprite=UiTheme.Frame(64);portraitEdge.raycastTarget=false;
-            _profile=Text(profile.transform,"Profile","",.29f,.40f,.96f,.94f,40,Ivory);
-            Text(profile.transform,"SessionLabel",Loc.Get("UI_HUB_COMMAND"),.29f,.08f,.96f,.39f,23,Gold);
-            var wallet=HomeWalletBar.Create(_safe,Navigate);
-            Place((RectTransform)wallet.transform,.48f,.85f,.865f,.99f);
-            SmallIcon(_safe,"Mail",.875f,.85f,.925f,.99f);
-            SmallIcon(_safe,"Options",.935f,.85f,.985f,.99f);
-            string[] quick={"News","Mission","Pass","Event"};
-            string[] quickLabels={Loc.Get("UI_TITLE_NEWS"),Loc.Get("UI_HOME_MISSION"),Loc.Get("UI_HOME_LOBBY_REWARDS"),GameText.ScreenName("Events")};
-            for(int i=0;i<quick.Length;i++) {
-                float x=.033f+(i%2)*.086f,y=.73f-(i/2)*.137f;
-                LobbyTile(_safe,quick[i],quickLabels[i],x,y,x+.063f,y+.115f);
-            }
-            var banner=HubButton(_safe,"News",Loc.Get("UI_HOME_LOBBY_NEWS"),.018f,.23f,.265f,.38f,false);
-            Picture(banner.transform,"NewsArt","HomeUI/AnimeLobby",.51f,.03f,.99f,.97f,new Color(1,1,1,.65f));
-            banner.GetComponentInChildren<TextMeshProUGUI>().transform.SetAsLastSibling();
-            Place(banner.GetComponentInChildren<TextMeshProUGUI>().rectTransform,.07f,.20f,.60f,.85f);
-            banner.GetComponentInChildren<TextMeshProUGUI>().fontSizeMax=30;
-            var dock=Panel(_safe,"BottomDock",.018f,.043f,.694f,.155f,UiTheme.WithAlpha(UiTheme.Panel,.88f));
-            RoundedFrame(dock);
-            string[] ids={"Exemplars","Party","Inventory","Album","Store","Excavation"};
-            string[] labels={Loc.Get("UI_HOME_EXEMPLARS"),Loc.Get("UI_MODE_PARTY"),Loc.Get("UI_HOME_INVENTORY"),GameText.ScreenName("Album"),Loc.Get("UI_HOME_STORE"),Loc.Get("UI_HOME_EXCAVATION")};
-            for(int i=0;i<ids.Length;i++)LobbyTile(dock.transform,ids[i],labels[i],i/6f,.03f,(i+1)/6f,.97f);
-            _ledger=Panel(_safe,"Expedition",.755f,.048f,.985f,.195f,Color.clear).rectTransform;
-            _expedition=Text(_ledger,"Stage","",.05f,.72f,.98f,1,22,Ivory);
-            _battleState=Text(_ledger,"State","",.05f,.53f,.98f,.73f,16,Quiet);
-            _battle=HubButton(_ledger,"Combat",Loc.Get("UI_HOME_LOBBY_ADVENTURE"),0,0,1,1,true);
-            _battle.GetComponentInChildren<TextMeshProUGUI>().fontSizeMax=64;
-            _expedition.gameObject.SetActive(false);_battleState.gameObject.SetActive(false);
-            var more=HubButton(_safe,"More",Loc.Get("UI_HOME_MORE"),.88f,.20f,.98f,.31f,false);
-            more.GetComponentInChildren<TextMeshProUGUI>().fontSizeMax=28;
-            _driver=UnityEngine.Object.FindFirstObjectByType<Roi.Sim.SimDriver>();
-            LayoutForScreen();
-        }
+        void Compose(RectTransform rt) => ComposeTactical(rt);
         void LobbyTile(Transform parent,string id,string label,float x,float y,float r,float t)
         {
             var button=HubButton(parent,id,label,x,y,r,t,false);
@@ -87,7 +43,10 @@ namespace Roi.UI
                 foreach(var img in button.GetComponentsInChildren<Image>())if(img!=button.GetComponent<Image>())img.enabled=false;
             }
             var caption=button.GetComponentInChildren<TextMeshProUGUI>();
-            Place(caption.rectTransform,.02f,.04f,.98f,.40f);caption.fontSizeMin=28;caption.fontSizeMax=40;
+            Place(caption.rectTransform,.025f,.025f,.975f,.42f);
+            caption.font=UiTheme.Font;caption.fontSharedMaterial=UiTheme.Material;
+            caption.alignment=TextAlignmentOptions.Center;caption.textWrappingMode=TextWrappingModes.NoWrap;
+            caption.fontSizeMin=16;caption.fontSizeMax=24;caption.fontSize=24;
         }
         Button LedgerLink(Transform parent,string id,string label,float x,float y,float r,float t,float fontSize)
         {
@@ -110,7 +69,7 @@ namespace Roi.UI
         }
         void FitStage(bool wide)
         {
-            _expedition.enableAutoSizing=true;_expedition.fontSizeMin=14;_expedition.fontSizeMax=22;
+            _expedition.enableAutoSizing=true;_expedition.fontSizeMin=16;_expedition.fontSizeMax=48;
         }
         static void DepthShadow(Transform parent)
         {
@@ -149,23 +108,29 @@ namespace Roi.UI
             if(Time.unscaledTime<_nextRefresh)return;_nextRefresh=Time.unscaledTime+.5f;
             if(_driver==null||_driver.Session==null||!_driver.Session.IsAlive)return;
             var view=JsonUtility.FromJson<HomeView>(_driver.Session.ViewJson());
+            if(_level!=null && view.grid?.entities!=null)foreach(var member in view.grid.entities)if(member.team=="Player"&&!member.is_pet&&member.stats!=null){_level.text=member.stats.level.ToString();break;}
             _profile.text=view.party_name??view.character_name??"";
             var zone=System.Text.RegularExpressions.Regex.Match(view.current_zone_id??"",@"zone_b(\d+)_(\d+)");
             string stage=zone.Success?Loc.Fmt("UI_HUB_STAGE",zone.Groups[1].Value,zone.Groups[2].Value):Loc.Get("UI_HUB_EXPEDITION");
             if(_expedition.text!=stage){_expedition.text=stage;FitStage(_safeRect.width/Mathf.Max(1,_safeRect.height)>1.7f);}
 
-            _battleState.text=Loc.Get(_driver.Paused?"UI_HUB_PAUSED":"UI_HUB_AUTO_BATTLE");
+            _battleState.text=Loc.Get(_driver.WaitingForSave?"UI_REVIEW_SAVE_WAIT":_driver.Paused?"UI_HUB_PAUSED":"UI_HUB_AUTO_BATTLE");
         }
-        [Serializable] class HomeView {public string party_name,character_name,current_zone_id;}
+        [Serializable] class HomeView {public string party_name,character_name,current_zone_id; public HomeGrid grid;}
+        [Serializable] class HomeGrid {public HomeMember[] entities;}
+        [Serializable] class HomeMember {public string team;public bool is_pet;public HomeStats stats;}
+        [Serializable] class HomeStats {public int level;}
+        public void OpenMore() => Navigate("More");
         void Navigate(string id)
         {
+            if(id=="More" && _homeMenu!=null){CloseGroup();RevealHomeMenu();return;}
             if(id=="News"){OpenNews();return;}
             if(id=="Combat") { var modes=UnityEngine.Object.FindFirstObjectByType<ModeTabs>();if(modes!=null)modes.Select(true);else _open?.Invoke("Combat");return; }
             if(id=="Party" || id=="Inventory") { _open?.Invoke(id); return; }
             string[] entries = id switch
             {
                 "Party" => new[]{"Party","Commander","Paths"},
-                "More" => new[]{"Map","Dungeon","Story","Daily","Weekly","Events","Pass","Commander","Outpost","Bestiary","Record","Paths","Cards","Stash","Album","Provisions","Regalia","Apothecary"},
+                "More" => MoreEntries,
                 "Mission" => new[]{"Daily","Weekly","Pass","Events"},
                 "Inventory" => new[]{"Inventory","Cards","Stash","Album"},
                 "Workshop" => new[]{"Apothecary"},
@@ -183,6 +148,7 @@ namespace Roi.UI
             dismiss.transition=Selectable.Transition.None;dismiss.onClick.AddListener(()=>CloseGroup());
             dismiss.navigation=new Navigation{mode=Navigation.Mode.None};
             var panel=UiTheme.Box(dim.transform,"Group",UiTheme.Panel);
+            DialogSurface.Apply(panel);
             Place(panel.rectTransform,.23f,.08f,.89f,.88f);
             RoundedFrame(panel);
             string title=id switch {"More"=>Loc.Get("UI_HOME_MORE"),"Workshop"=>Loc.Get("UI_HOME_WORKSHOP"),"Store"=>Loc.Get("UI_HOME_STORE"),"Mission"=>Loc.Get("UI_HOME_MISSION"),"Secondary3"=>Loc.Get("UI_HOME_ACHIEVEMENT"),_=>GameText.ScreenName(id)};
@@ -231,7 +197,8 @@ namespace Roi.UI
         {
             CloseGroup();
             var dim=UiTheme.Flat(transform,"NewsOverlay",UiTheme.Scrim);_group=dim.gameObject;Place(dim.rectTransform,0,0,1,1);
-            var panel=UiTheme.Box(dim.transform,"News",UiTheme.Panel);Place(panel.rectTransform,.26f,.20f,.74f,.80f);RoundedFrame(panel);
+            var panel=UiTheme.Box(dim.transform,"News",UiTheme.Panel);
+            DialogSurface.Apply(panel);Place(panel.rectTransform,.26f,.20f,.74f,.80f);RoundedFrame(panel);
             Text(panel.transform,"Title",Loc.Get("UI_TITLE_NEWS"),.08f,.78f,.90f,.94f,38,Ivory);
             Text(panel.transform,"Version",Loc.Fmt("UI_TITLE_RELEASE",Roi.Sim.SimSession.SimVersion()),.08f,.61f,.92f,.76f,26,Gold);
             Text(panel.transform,"Body",Loc.Get("UI_TITLE_RELEASE_NOTES"),.08f,.22f,.92f,.59f,26,Ivory);

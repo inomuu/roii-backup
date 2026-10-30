@@ -24,15 +24,16 @@ namespace Roi.UI
         Coroutine _request;
         int _generation;
         float _nextPurse, _nextWallet;
-        bool _built;
+        bool _built, _tactical;
         const string Unknown = "—";
 
-        public static HomeWalletBar Create(Transform parent, Action<string> navigate)
+        public static HomeWalletBar Create(Transform parent, Action<string> navigate, bool tactical=false)
         {
             var go = new GameObject("HomeWallet", typeof(RectTransform));
             go.transform.SetParent(parent, false);
             Place((RectTransform)go.transform, .475f, .905f, .884f, .987f);
             var bar = go.AddComponent<HomeWalletBar>();
+            bar._tactical=tactical;
             bar.Build(navigate);
             bar.Activate();
             return bar;
@@ -43,7 +44,7 @@ namespace Roi.UI
             var names = new[] {"Gil", "Soul", "Gem"};
             var labels = new[] {Loc.Get("UI_GIL"), Loc.Get("UI_SOUL"), Loc.Get("UI_HOME_GEM")};
             var routes = new[] {"Store", "Paths", "Crystal"};
-            var font = Loc.Language=="th" ? UiTheme.Font : Resources.Load<TMP_FontAsset>("HomeUI/HomeSerif") ?? UiTheme.DisplayFont;
+            var font = _tactical ? (Loc.Language=="th"?UiTheme.Font:Resources.Load<TMP_FontAsset>("HomeUI/HomeHeading")??UiTheme.Font) : Loc.Language=="th" ? UiTheme.Font : Resources.Load<TMP_FontAsset>("HomeUI/HomeSerif") ?? UiTheme.DisplayFont;
             for (int i = 0; i < 3; i++)
             {
                 int index = i;
@@ -56,6 +57,7 @@ namespace Roi.UI
                 image.sprite=UiTheme.Fill();image.type=Image.Type.Sliced;
                 var outline=UiTheme.Border(rt,UiTheme.WithAlpha(UiTheme.Accent,.65f));
                 outline.sprite=UiTheme.Frame();outline.raycastTarget=false;
+                if(_tactical){image.sprite=null;image.color=new Color(.025f,.04f,.055f,.65f);outline.enabled=false;}
                 image.material = HomeIconSet.Material; // Separate alpha blend for the offscreen UI camera.
                 var button = strip.GetComponent<Button>();
                 button.targetGraphic = image;
@@ -97,7 +99,7 @@ namespace Roi.UI
             for (int i = 0; i < 3; i++) changed |= _layoutValues[i] != _values[i].text;
             if (!changed || size.x <= 0 || size.y <= 0) return;
             _layoutSize = size;
-            bool compact=Screen.safeArea.width/Mathf.Max(1,Screen.safeArea.height)>1.7f;
+            bool compact=_tactical || Screen.safeArea.width/Mathf.Max(1,Screen.safeArea.height)>1.7f;
             float height = size.y * .90f;
             float icon = Mathf.Min(compact?48:36, height * .54f);
             float action = compact?0:Mathf.Min(20, height * .35f);
@@ -112,7 +114,9 @@ namespace Roi.UI
                 value.fontSizeMin=compact?32:27;value.fontSizeMax=compact?48:36;
                 value.fontSize = value.fontSizeMax;
                 _names[i].gameObject.SetActive(!compact);_actions[i].gameObject.SetActive(!compact);
+                if(_tactical){value.fontSizeMin=22;value.fontSizeMax=34;value.fontSize=34;}
                 float valueWidth = Mathf.Clamp(value.GetPreferredValues(value.text).x + 3, 24, maxValue);
+                if(_tactical)valueWidth=maxValue;
                 float width = inset * 2 + icon + iconGap + valueWidth + actionGap + action;
                 cursor -= width;
                 Box(_strips[i], cursor, size.y * .05f, width, height);

@@ -1,0 +1,19 @@
+Eclipse interface typography, imported 2026-10-15.
+
+Display: Marcellus Regular, by Astigmatic / Brian J. Bonislawsky.
+https://github.com/google/fonts/tree/main/ofl/marcellus
+https://raw.githubusercontent.com/google/fonts/main/ofl/marcellus/Marcellus-Regular.ttf
+SHA256: 1cf0cd10b17d35e852729962cc1ffaffed94514895972458345e2df34abb2f81
+
+UI body: Bai Jamjuree Medium. Thai display fallback: Bai Jamjuree SemiBold.
+Designed by Cadson Demak; Thai and Latin coverage.
+https://github.com/google/fonts/tree/main/ofl/baijamjuree
+https://raw.githubusercontent.com/google/fonts/main/ofl/baijamjuree/BaiJamjuree-Medium.ttf
+Medium SHA256: 95782f3c3e07866749fb28e1d1a356e383e8f2bdcc7b88d4e3a3fc546613137f
+https://raw.githubusercontent.com/google/fonts/main/ofl/baijamjuree/BaiJamjuree-SemiBold.ttf
+SemiBold SHA256: daaa68bc721e893861f948f40542b9f1ea8496a3fe4250a0ffc86dab0aee8f3c
+
+Original font binaries are unmodified. Both families are distributed under SIL OFL 1.1.
+The complete original licenses are included alongside these files.
+EclipseTypographySetup bakes the supplied glyph lists into static TMP atlases.
+The existing Noto fallback chain supplies symbols/scripts outside these fonts.

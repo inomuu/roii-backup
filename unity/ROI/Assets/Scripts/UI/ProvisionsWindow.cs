@@ -250,6 +250,7 @@ namespace Roi.UI
 
             var panel = UiTheme.Box(root.transform, "Panel", UiTheme.Panel);
             DialogSurface.Apply(panel);
+            DialogSurface.CloseIcon(panel.transform,ClosePicker);
             var pr = panel.rectTransform;
             pr.anchorMin = pr.anchorMax = new Vector2(0.5f, 0.5f);
             pr.pivot = new Vector2(0.5f, 0.5f);

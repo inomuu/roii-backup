@@ -69,7 +69,7 @@ static Button Button(Transform root,string name)=>root.GetComponentsInChildren<B
         var count=ForgeModel.Items(session.QueryJson("inventory")).Length;
         Button(host.transform,"UI_FORGE_COMBINE").onClick.Invoke();
         Check(ForgeModel.Items(session.QueryJson("inventory")).Length==count-5,"gear fusion consumes six and awards one");
-        Check(host.Result.Visible,"actual acquisition opens Result");
+        Check(!host.Result.Visible,"actual acquisition keeps the result dialog hidden");
         ulong before=driver.Tick;
         yield return Shot("02-result");yield return new WaitForSecondsRealtime(.6f);
         Check(driver.Tick>before,"combat ticks continue while Result is open");

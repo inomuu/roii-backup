@@ -29,7 +29,7 @@ namespace Roi.UI
         float _dockCardWidth;
         const float DockGap=10f;
         Vector2 _rosterLastSize;
-        TextMeshProUGUI _pageTitle,_count,_artNote,_pageScope;
+        TextMeshProUGUI _pageTitle,_pageHelp,_count,_artNote,_pageScope;
         Action _close;
         ShopSelectionArc _navigationArc;
         string _rosterFingerprint="",_artClass="";
@@ -58,7 +58,9 @@ namespace Roi.UI
             _rosterRule=ExemplarUi.Panel(transform,"RosterRule",RosterLeft,.887f,RosterRight,.889f,ExemplarUi.Line).gameObject;
             ExemplarUi.Panel(transform,"HeaderSurface",0,.902f,1,1,UiTheme.Header);
             ExemplarUi.Panel(transform,"HeaderRule",0,.901f,1,.902f,UiTheme.Line);
-            _pageTitle=ExemplarUi.Text(transform,"PageTitle",Loc.Get("UI_HOME_EXEMPLARS"),.025f,.919f,.68f,.972f,28,ExemplarUi.White);
+            _pageTitle=ExemplarUi.Text(transform,"PageTitle",Loc.Get("UI_HOME_EXEMPLARS"),.025f,.947f,.89f,.992f,27,ExemplarUi.White);
+            _pageHelp=ExemplarUi.Text(transform,"PageHelp","",.025f,.907f,.89f,.944f,16,ExemplarUi.Muted);
+            ExemplarUi.Button(transform,"Back",Loc.Get("UI_STORY_BACK"),.91f,.92f,.985f,.977f,()=>_close?.Invoke());
             _overview=ExemplarOverview.Create(transform,SelectPage);
             for(int i=0;i<PageIds.Length;i++)
             {
@@ -169,7 +171,8 @@ namespace Roi.UI
             foreach(var kv in _rosterItems)kv.Value.Find("DockFrame").GetComponent<ExemplarDockCard>().Select(kv.Key==InspectedId);
             foreach(var kv in _nav)kv.Value.interactable=!NeedsDeployed(kv.Key)||(member!=null&&!member.Benched&&member.Stats!=null);
             string classId=member?.UnitDef??"";if(classId!=_artClass){_artClass=classId;_portrait.SetCharacter(classId);}
-            _pageTitle.text=Loc.Get("UI_HOME_EXEMPLARS")+"   /   "+PageName(CurrentPage);
+            _pageTitle.text=Loc.Get("UI_HOME_EXEMPLARS")+"   /   "+PageName(CurrentPage)+(member==null?"":"   /   "+GameText.UnitName(member.UnitDef));
+            _pageHelp.text=Loc.Get("UI_REVIEW_HELP_"+CurrentPage.ToUpperInvariant());
             _pageScope.text=member==null?"":GameText.UnitName(member.UnitDef);
             _artNote.gameObject.SetActive(false);
         }

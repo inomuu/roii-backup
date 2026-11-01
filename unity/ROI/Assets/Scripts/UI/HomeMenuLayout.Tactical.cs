@@ -11,7 +11,8 @@ namespace Roi.UI
             _font=Loc.Language=="th"?UiTheme.Font:Resources.Load<TMP_FontAsset>("HomeUI/HomeHeading")??UiTheme.Font;
             Picture(rt,"Landscape","HomeUI/TacticalLobby114",0,0,1,1,Color.white);
             _safe=Panel(rt,"SafeContent",0,0,1,1,Color.clear).rectTransform;
-            var profile=Panel(_safe,"ProfilePlate",.009f,.828f,.241f,.952f,new Color(.01f,.02f,.03f,.65f));
+            var profile=Panel(_safe,"ProfilePlate",.009f,.828f,.241f,.952f,Color.clear);
+            {var plate=WuwaPanel.Add(profile.transform,12,false);plate.Top=new Color(.07f,.072f,.082f,.78f);plate.Bottom=new Color(.035f,.037f,.045f,.62f);plate.TopAccent=true;}
             var ring=new GameObject("LevelRing",typeof(RectTransform),typeof(TacticalHomeMark));ring.transform.SetParent(profile.transform,false);
             Place((RectTransform)ring.transform,0,-.02f,.40f,1.02f);ring.GetComponent<TacticalHomeMark>().Circle=true;ring.GetComponent<TacticalHomeMark>().color=new Color(.8f,.83f,.65f,.85f);
             _level=Text(profile.transform,"Level","—",.05f,.28f,.34f,.88f,74,Color.white);_level.alignment=TextAlignmentOptions.Center;
@@ -33,12 +34,13 @@ namespace Roi.UI
             Text(status.transform,"Plus","+",.91f,.22f,.98f,.90f,44,Color.white);
             _battle=TacticalCard(_ledger,"Combat",Loc.Get("UI_TACTICAL_CAMPAIGN"),Loc.Get("UI_HUB_RETURN_BATTLE"),0,.584f,1,.801f);
             Picture(_battle.transform,"CampaignArt","HomeUI/TacticalLobby114",.59f,.06f,.985f,.94f,new Color(.7f,.8f,.88f,.7f));
-            Panel(_battle.transform,"CampaignArtShade",.59f,.06f,.985f,.94f,new Color(.05f,.09f,.15f,.27f));
+            Panel(_battle.transform,"CampaignArtShade",.59f,.06f,.985f,.94f,new Color(.04f,.04f,.05f,.30f));
             Icon(_battle.transform,"Combat",.79f,.11f,.94f,.73f,Color.white);
             BuildHomeMenu(_ledger);
             var banner=TacticalCard(_safe,"News","","",.023f,.165f,.252f,.365f);
             Picture(banner.transform,"NewsArt","HomeUI/TacticalLobby114",0,0,1,1,Color.white);
-            Panel(banner.transform,"BannerStripe",0,.03f,1,.33f,new Color(.025f,.17f,.62f,.92f));
+            {var stripe=Panel(banner.transform,"BannerStripe",0,.03f,1,.45f,Color.clear);WuwaGradient.Add(stripe.transform,new Color(.03f,.03f,.04f,0f),new Color(.03f,.03f,.04f,.92f));
+             Panel(banner.transform,"BannerAccent",.035f,.30f,.16f,.312f,UiTheme.Accent);}
             var news=Text(banner.transform,"NewsLabel",Loc.Get("UI_TACTICAL_NEWS"),.035f,.035f,.97f,.32f,43,Color.white);news.fontStyle=FontStyles.Bold;
             TacticalCard(_safe,"Party",Loc.Get("UI_TACTICAL_FRIENDS"),"",.023f,.095f,.137f,.159f);
             TacticalCard(_safe,"News",Loc.Get("UI_TACTICAL_INTEL"),"",.141f,.095f,.252f,.159f);
@@ -48,7 +50,7 @@ namespace Roi.UI
         const float HomeMenuRow=76f;
         void BuildHomeMenu(RectTransform parent)
         {
-            var area=Panel(parent,"HomeMenu",0,0,1,.575f,new Color(.015f,.025f,.04f,.72f)).rectTransform;
+            var area=Panel(parent,"HomeMenu",0,0,1,.575f,new Color(.03f,.032f,.04f,.45f)).rectTransform;
             var content=UiScroll.Create(area,out _homeMenu);
             var entries=new System.Collections.Generic.List<string>{"Party","Exemplars","Store","Excavation","Album","Inventory"};
             foreach(var entry in MoreEntries)if(!entries.Contains(entry))entries.Add(entry);
@@ -88,21 +90,25 @@ namespace Roi.UI
 
         Button TacticalCard(Transform parent,string id,string label,string sub,float x,float y,float r,float t,bool blue=false,bool transparent=false)
         {
-            var image=Panel(parent,id,x,y,r,t,transparent?Color.clear:blue?new Color(.025f,.11f,.22f,1f):new Color(.018f,.025f,.035f,1f));
-            image.raycastTarget=true;image.material=HomeIconSet.Material;
+            // WuWa card: transparent hit area, cut-corner glass drawn on top of it. The glass is
+            // the button's target graphic so hover/press tint the card itself.
+            var image=Panel(parent,id,x,y,r,t,Color.clear);
+            image.raycastTarget=true;
             var button=image.gameObject.AddComponent<Button>();button.targetGraphic=image;
             button.onClick.AddListener(()=>Navigate(id));
-            var colors=button.colors;colors.highlightedColor=new Color(1.5f,1.6f,1.75f);colors.pressedColor=new Color(.6f,.7f,.8f);button.colors=colors;
+            var colors=button.colors;colors.highlightedColor=new Color(1.35f,1.32f,1.25f);colors.pressedColor=new Color(.7f,.7f,.68f);colors.fadeDuration=UiTheme.HoverDuration;button.colors=colors;
             if(!transparent){
-                Panel(image.transform,"TopRule",0,.988f,1,1,new Color(.62f,.71f,.81f,.5f));
-                Panel(image.transform,"Edge",.997f,0,1,1,new Color(.6f,.7f,.8f,.32f));
-                var mark=new GameObject("Watermark",typeof(RectTransform),typeof(TacticalHomeMark));mark.transform.SetParent(image.transform,false);
-                Place((RectTransform)mark.transform,.52f,.02f,.97f,.95f);mark.GetComponent<TacticalHomeMark>().color=new Color(.67f,.72f,.79f,.075f);
+                var glass=WuwaPanel.Add(image.transform,blue?14:9,blue);
+                glass.Top=blue?new Color(.14f,.142f,.155f,.88f):new Color(.085f,.088f,.098f,.84f);
+                glass.Bottom=blue?new Color(.06f,.062f,.072f,.90f):new Color(.04f,.042f,.05f,.86f);
+                glass.Edge=blue?UiTheme.WithAlpha(UiTheme.Accent,.42f):UiTheme.WithAlpha(UiTheme.TextHigh,.16f);
+                glass.TopAccent=blue;
+                button.targetGraphic=glass;
             }
             if(label.Length>0){
                 bool large=t-y>.19f;float font=large?55:32;
-                var title=Text(image.transform,"Label",label,.06f,sub.Length>0?.32f:.10f,.96f,.94f,font,Color.white);title.fontStyle=FontStyles.Bold;title.textWrappingMode=TextWrappingModes.NoWrap;
-                if(sub.Length>0){var caption=Text(image.transform,"Subtitle",sub.ToUpperInvariant(),.065f,.11f,.96f,.35f,large?19:14,new Color(.73f,.77f,.80f));caption.textWrappingMode=TextWrappingModes.NoWrap;}
+                var title=Text(image.transform,"Label",label,.06f,sub.Length>0?.32f:.10f,.96f,.94f,font,Color.white);title.fontStyle=FontStyles.Bold;title.textWrappingMode=TextWrappingModes.NoWrap;title.color=UiTheme.TextHigh;
+                if(sub.Length>0){var caption=Text(image.transform,"Subtitle",sub.ToUpperInvariant(),.065f,.11f,.96f,.35f,large?19:14,new Color(.73f,.77f,.80f));caption.textWrappingMode=TextWrappingModes.NoWrap;caption.color=UiTheme.TextLow;caption.characterSpacing=2f;}
             }
             return button;
         }

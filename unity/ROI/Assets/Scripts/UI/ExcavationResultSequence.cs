@@ -15,7 +15,7 @@ namespace Roi.UI
         public void Begin(UiConfirm modal, List<RectTransform> cards)
         {
             _modal = modal;
-            var close = modal.transform.Find("Sheet/Close").GetComponent<Button>();
+            var close = modal.transform.Find("Sheet/Back").GetComponent<Button>();
             _label = close.GetComponentInChildren<TMP_Text>();
             close.onClick.RemoveAllListeners();
             close.onClick.AddListener(Advance);

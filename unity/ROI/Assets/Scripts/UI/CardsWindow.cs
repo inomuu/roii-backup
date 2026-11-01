@@ -15,6 +15,7 @@ namespace Roi.UI
         ScrollRect _gridScroll, _factsScroll;
         TMP_InputField _search;
         Button _filterButton;
+        GameObject _emptyNotice;
         TextMeshProUGUI _summary, _note;
         readonly List<GameObject> _tiles=new(), _detail=new();
         SlotRow[] _rows=Array.Empty<SlotRow>();
@@ -100,6 +101,22 @@ namespace Roi.UI
                 if(_albumIndex<0&&_visible.Count>0){_albumIndex=_visible[0];reveal=true;}
                 if(_albumIndex>=0){var c=_owned[_albumIndex];_cardKey=Key(c);if(!Fits(c.card_slot,_target))_target=c.card_slot;}
                 else _cardKey="";}
+            if(_emptyNotice!=null){_emptyNotice.SetActive(false);Destroy(_emptyNotice);_emptyNotice=null;}
+            bool hasPlaced=Array.Exists(_rows,r=>r.cards!=null&&r.cards.Length>0);
+            bool empty=_visible.Count==0&&!hasPlaced;
+            _dossier.gameObject.SetActive(!empty);
+            _gridHost.gameObject.SetActive(!empty);
+            _toolbar.gameObject.SetActive(_owned.Length>0);
+            _summary.gameObject.SetActive(!empty);
+            _note.gameObject.SetActive(!empty);
+            if(empty){
+                Clear(_tiles);
+                bool collectionEmpty=_owned.Length==0;
+                _emptyNotice=MenuNotice.Create(_body,"Cards",T(collectionEmpty?"EMPTY":"NO_MATCH"),T(collectionEmpty?"EMPTY_HINT":"SEARCH_HINT"),
+                    collectionEmpty?(Action)OpenAlbum:()=>{_filter="";_query="";_search.SetTextWithoutNotify("");FilterChanged();},T(collectionEmpty?"OPEN_ALBUM":"CLEAR_FILTERS"));
+                MenuNotice.Center(_emptyNotice);
+                return;
+            }
             BuildGrid();if(reveal)RevealSelected();BuildDetail();
         }
         bool Matches(ItemView card)
@@ -169,7 +186,7 @@ namespace Roi.UI
                 y+=Mathf.Ceil(group.Count/(float)cols)*(ch+gap)+8;
             }
             if(_visible.Count==0){
-                var empty=AlbumCodexSurface.Create(_grid,"EmptyCollection");Place(empty.rectTransform,0,10,width,220);_tiles.Add(empty.gameObject);
+                var empty=UiTheme.Box(_grid,"EmptyCollection",Color.clear);Place(empty.rectTransform,0,10,width,220);_tiles.Add(empty.gameObject);
                 var heading=Text(empty.transform,"EmptyTitle",T(_owned.Length==0?"EMPTY":"NO_MATCH"),23,UiTheme.TextHigh);UiTheme.Display(heading);Place(heading.rectTransform,24,30,width-48,38);
                 var hint=Text(empty.transform,"EmptyHint",T(_owned.Length==0?"EMPTY_HINT":"SEARCH_HINT"),15,UiTheme.TextMid);Place(hint.rectTransform,24,78,width-48,58);
                 var action=Action(empty.transform,"EmptyAction",T(_owned.Length==0?"OPEN_ALBUM":"CLEAR_FILTERS"),true,()=>{if(_owned.Length==0)OpenAlbum();else{_filter="";_query="";_search.SetTextWithoutNotify("");FilterChanged();}});

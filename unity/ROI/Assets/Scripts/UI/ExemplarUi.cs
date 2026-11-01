@@ -28,7 +28,8 @@ namespace Roi.UI
         {
             var rt=Rect(p,name,x,y,r,t);var im=rt.gameObject.AddComponent<Image>();
             im.color=color;im.raycastTarget=false;
-            if(name is "Shade" or "EquipmentStats" or "GearInspector" or "ResonanceIdentity" or "ResonanceDetails")
+            if(name is "Shade" or "EquipmentStats" or "GearInspector" or "ResonanceIdentity" or "ResonanceDetails"
+                or "RankSurface" or "EffectsSurface" or "EquippedTile")
             { im.color=Color.clear; GameMenuSurface.Add(rt); }
             return im;
         }
@@ -92,8 +93,8 @@ namespace Roi.UI
 
             _status=ExemplarUi.Text(p,"Status","",.045f,.183f,.98f,.239f,17,ExemplarUi.Muted);
             _status.textWrappingMode=TextWrappingModes.Normal;
-            _potential=ExemplarUi.Button(p,"OpenPotential",GameText.ScreenName("Skills"),.045f,.080f,.98f,.16f,()=>navigate("Skills"),true);
-            _equipment=ExemplarUi.Button(p,"OpenEquipment",Loc.Get("UI_EXEMPLAR_EQUIPMENT"),.045f,0,.98f,.065f,()=>navigate("Equipment"));
+            _potential=ExemplarUi.Button(p,"OpenPotential",GameText.ScreenName("Skills"),.045f,0,.98f,.065f,()=>navigate("Skills"));
+            _equipment=ExemplarUi.Button(p,"OpenEquipment",Loc.Get("UI_EXEMPLAR_EQUIPMENT"),.045f,.080f,.98f,.16f,()=>navigate("Equipment"),true);
         }
         public void Show(ExemplarReadModel.Member member)
         {

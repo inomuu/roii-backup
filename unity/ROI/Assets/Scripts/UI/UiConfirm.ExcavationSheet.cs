@@ -18,9 +18,10 @@ namespace Roi.UI {
    DialogSurface.Add(panel);
    Text(panel,"Title",title,36,26,900,48,30,Gold);
    content(Rect(panel,"Content",36,92,908,sheetHeight-206));
-   var close=Rect(panel,"Close",366,sheetHeight-88,248,64);var skin=close.gameObject.AddComponent<CodexButtonImage>();skin.Raised=true;skin.color=UiTheme.Surface;
+   var close=Rect(panel,"Back",366,sheetHeight-88,248,64);var skin=close.gameObject.AddComponent<CodexButtonImage>();skin.Raised=true;skin.color=UiTheme.Surface;
    Text(close,"Label",Loc.Get("UI_STORY_BACK"),30,14,188,35,22,Ivory).alignment=TextAlignmentOptions.Center;
    var closeButton=Hit(close,modal.Close);closeButton.targetGraphic=skin;UiButtonFeedback.Add(closeButton);EventSystem.current?.SetSelectedGameObject(close.gameObject);
+   DialogSurface.CloseIcon(panel,modal.Close);
    UiEntrance.Play(panel);
    return modal;
   }

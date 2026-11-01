@@ -174,7 +174,8 @@ namespace Roi.UI
         {
             _lastSize = _body.rect.size;
             float pad = 24, top = 20, bottom = 42, avail = _body.rect.width - pad * 2;
-            float railW=120;
+            float railW=0;
+            _albumTab.gameObject.SetActive(false);_bagTab.gameObject.SetActive(false);
             float detailW = Mathf.Clamp(avail * .32f, 260, 364);
             _gridWidth = avail - detailW - 24 - railW;
             float tabW = Mathf.Min(228, (_gridWidth - 8) * .5f);
@@ -189,9 +190,9 @@ namespace Roi.UI
             Place((RectTransform)_detailScrollbar.transform,detailW-9,18,3,_detailBg.rectTransform.rect.height-36);
             Place(_note.rectTransform, pad, _body.rect.height - 34, _gridWidth, 30);
             _note.textWrappingMode = TextWrappingModes.Normal;
-            int cols = _gridWidth >= 390 ? 2 : 1;
+            int cols = Mathf.Max(1,Mathf.FloorToInt((_gridWidth+Gap)/174f));
             _cardW = (_gridWidth - Gap * (cols - 1)) / cols;
-            _cardH = Mathf.Clamp((_gridViewport.rect.height - Gap) / 2, 164, 230);
+            _cardH = _cardW*1.25f;
         }
         static void Clear(List<GameObject> objects)
         { foreach (var go in objects) { go.SetActive(false); Destroy(go); } objects.Clear(); }
@@ -200,7 +201,7 @@ namespace Roi.UI
             _layingOut = true;
             try
             {
-                var scroll = _gridViewport.GetComponent<ScrollRect>(); float position = scroll.verticalNormalizedPosition;
+                var scroll = _gridViewport.GetComponent<ScrollRect>(); float offset = _built.Count != _cards.Length + _bagCards.Length ? 0 : Mathf.Max(0, _grid.anchoredPosition.y);
                 Clear(_built); LayoutColumns();
                 _albumHead.text = Loc.Fmt("UI_ALBUM_TAB_COUNT", Loc.Get("UI_ALBUM_ALBUM"), _cards.Length);
                 _bagHead.text = Loc.Fmt("UI_ALBUM_TAB_COUNT", Loc.Get("UI_ALBUM_IN_THE_BAG"), _bagCards.Length);
@@ -208,20 +209,21 @@ namespace Roi.UI
                 _albumTabSurface.SetVerticesDirty(); _bagTabSurface.SetVerticesDirty();
                 _albumHead.color = !_bagMode ? UiTheme.Accent : UiTheme.TextMid;
                 _bagHead.color = _bagMode ? UiTheme.Accent : UiTheme.TextMid;
-                _context.text = Loc.Get(_bagMode ? "UI_ALBUM_BAG_GUIDE" : "UI_ALBUM_GRID_GUIDE");
-                _note.text = Loc.Get(_bagMode ? "UI_ALBUM_BAG_FOOT" : "UI_ALBUM_HINT");
-                int count = _bagMode ? _bagCards.Length : _cards.Length;
-                int cols = _gridWidth >= 390 ? 2 : 1;
+                _context.text = Loc.Get("UI_ALBUM_GRID_GUIDE");
+                _note.text = Loc.Get("UI_ALBUM_HINT");
+                int count = _cards.Length + _bagCards.Length;
+                int cols = Mathf.Max(1,Mathf.FloorToInt((_gridWidth+Gap)/174f));
                 for (int i = 0; i < count; i++)
                 {
-                    int idx = i; var card = _bagMode ? _bagCards[i].item : _cards[i];
+                    bool bag=i>=_cards.Length; int idx=bag?i-_cards.Length:i;
+                    var card=bag?_bagCards[idx].item:_cards[idx];
                     _built.Add(CardCell(card, i % cols * (_cardW + Gap), i / cols * (_cardH + Gap),
-                        i == (_bagMode ? _bagSel : _sel), () => Select(idx)));
+                        bag==_bagMode && idx == (bag ? _bagSel : _sel), () => { _bagMode=bag; Select(idx); }));
                 }
                 if (count == 0) EmptyCollection();
                 float height = Mathf.Ceil(count / (float)cols) * (_cardH + Gap) - Gap;
                 _grid.sizeDelta = new Vector2(0, Mathf.Max(_gridViewport.rect.height, height));
-                scroll.verticalNormalizedPosition = position;
+                scroll.StopMovement(); _grid.anchoredPosition = new Vector2(0, Mathf.Clamp(offset, 0, Mathf.Max(0, _grid.sizeDelta.y - _gridViewport.rect.height)));
                 BuildDetail();
             }
             finally { _layingOut = false; }
@@ -235,9 +237,9 @@ namespace Roi.UI
             var btn = frame.gameObject.AddComponent<UiStateButton>(); btn.targetGraphic = frame; btn.onClick.AddListener(() => pick());
             btn.colors = UiTheme.ButtonColors;
             var art = Portrait(frame.transform, card, false, new Rect((_cardW - 120) / 2, 23, 120, _cardH - 92));
-            var name = Text(frame.transform, "Name", GameText.ItemName(card), 20, UiTheme.TextHigh, 18, _cardH - 71, _cardW - 91, 30);
-            UiTheme.Display(name); name.enableAutoSizing = true; name.fontSizeMin = 16; name.fontSizeMax = 20;
-            var chip = AlbumCodexSurface.Create(frame.transform, "Quantity"); Place(chip.rectTransform, _cardW - 70, _cardH - 65, 52, 25);
+            var name = Text(frame.transform, "Name", GameText.ItemName(card), 16, UiTheme.TextHigh, 10, _cardH - 71, _cardW - 20, 26);
+            UiTheme.Display(name); name.enableAutoSizing = true; name.fontSizeMin = 12; name.fontSizeMax = 16;
+            var chip = AlbumCodexSurface.Create(frame.transform, "Quantity"); Place(chip.rectTransform, _cardW - 62, 8, 52, 25);
             Text(chip.transform, "Count", "×" + card.quantity, 14, UiTheme.TextHigh, 2, 0, 48, 25, TextAlignmentOptions.Center);
             var rare = Rarity(card);
             var rule = UiTheme.Flat(frame.transform, "Rarity", rare); rule.raycastTarget = false;
@@ -290,11 +292,6 @@ namespace Roi.UI
             var frame = AlbumCodexSurface.Create(_grid, "EmptyCollection", true); Place(frame.rectTransform, 0, 0, _gridWidth, 194);
             Text(frame.transform, "Empty", Loc.Get(_bagMode ? "UI_ALBUM_EMPTY_BAG" : "UI_ALBUM_EMPTY"), 20, UiTheme.TextHigh, 24, 35, _gridWidth-48, 46, TextAlignmentOptions.Center);
             Text(frame.transform, "Hint", Loc.Get(_bagMode ? "UI_ALBUM_FIND_CARDS" : "UI_ALBUM_EMPTY_GUIDE"), 14, UiTheme.TextMid, 24, 84, _gridWidth-48, 44, TextAlignmentOptions.Center);
-            if (!_bagMode && _bagCards.Length > 0)
-            {
-                var open = Action(frame.transform, "OpenBag", Loc.Get("UI_ALBUM_IN_THE_BAG"), false, () => SetBag(true), out _);
-                Place(open.GetComponent<RectTransform>(), (_gridWidth-220)/2, 137, 220, 44);
-            }
             _built.Add(frame.gameObject);
         }
 
@@ -503,3 +500,4 @@ namespace Roi.UI
         [System.Serializable] class LeadEntity { public long id; public string team, unit_def; public bool is_pet; }
     }
 }
+

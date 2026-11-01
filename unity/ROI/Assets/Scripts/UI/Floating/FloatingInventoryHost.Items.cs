@@ -121,6 +121,14 @@ namespace Roi.UI
         {
             if(item==null)return null;
             string text=FloatingItemDescription.Format(item,row,Model.IsGem(item));
+            if(row?.OwnerId==0&&(item.kind=="Weapon"||item.kind=="Armor"))
+            {
+                var worn=_equipment?.Equipped?.FirstOrDefault(r=>r.Item.slot==item.slot)?.Item;
+                text+="\n\n"+Loc.Get("UI_EX_GEAR_COMPARE_COLUMNS")+"\n"+Loc.Get("UI_EX_GEAR_CURRENT")+": "+(worn==null?Loc.Get("UI_REVIEW_EMPTY_SLOT"):GameText.ItemName(worn));
+                text+="\n"+Loc.Get("UI_EXEMPLAR_ATK")+"  "+(worn?.graded_atk??0)+" → "+item.graded_atk;
+                text+="\n"+Loc.Get("UI_EXEMPLAR_DEF")+"  "+(worn?.graded_def??0)+" → "+item.graded_def;
+                text+="\n"+Loc.Get("UI_EX_GEAR_ITEM_ONLY");
+            }
             if(Model.IsGem(item))
             {
                 // gem_plan supplies formatted min/max lines even for a non-fitting target.

@@ -24,7 +24,7 @@ public sealed partial class UiGalleryRunner
         }
         HomeButton(home,"More").onClick.Invoke();yield return Shot("More");
         var scroll=home.GetComponentInChildren<ScrollRect>();
-        if(scroll==null||scroll.content.childCount!=18)Debug.LogError("Home101 lost secondary routes");
+        if(scroll==null||scroll.content.childCount!=19)Debug.LogError("Home101 lost secondary routes");
         else {scroll.verticalNormalizedPosition=0;yield return Shot("More-bottom");}
         home.CloseGroup();yield return null;
         HomeButton(home,"Store").onClick.Invoke();yield return Shot("Store");home.CloseGroup();yield return null;
@@ -48,7 +48,7 @@ public sealed partial class UiGalleryRunner
         canvas.SetActive(false);
         var modes=ModeTabs.Create(transform);modes.Select(false);yield return new WaitForSecondsRealtime(.5f);
         var live=modes.GetComponentInChildren<HomeMenuLayout>();
-        if(modes.transform.Find("Tabs").gameObject.activeSelf)Debug.LogError("Home101 duplicate battle switch visible");
+        if(modes.transform.Find("QuickNavigation").gameObject.activeSelf)Debug.LogError("Home101 duplicate battle switch visible");
         yield return Shot("Home-live");
         live.transform.Find("SafeContent/Expedition/Combat").GetComponent<Button>().onClick.Invoke();
         if(!modes.IsCombat)Debug.LogError("Home101 live battle route failed");
@@ -56,9 +56,6 @@ public sealed partial class UiGalleryRunner
     }
     void CheckHome102(HomeMenuLayout home)
     {
-        var ledger=home.transform.Find("SafeContent/Expedition");
-        var stage=ledger.Find("Stage").GetComponent<TMPro.TextMeshProUGUI>();
-        var state=ledger.Find("State").GetComponent<TMPro.TextMeshProUGUI>();
         var raycaster=home.GetComponentInParent<GraphicRaycaster>();
         foreach(var id in new[]{"Combat","Exemplars","Party","Inventory","Album","Store","More","Excavation"}) {
             var button=HomeButton(home,id);

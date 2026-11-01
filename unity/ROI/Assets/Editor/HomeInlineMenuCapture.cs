@@ -10,7 +10,7 @@ public static class HomeInlineMenuCapture
 {
     public static void Run()
     {
-        string folder=Path.GetFullPath(Path.Combine(Application.dataPath,"../../Captures/home-inline-menu"));
+        string folder="D:/roii/ui-review-20261030/home-inline-menu";
         Directory.CreateDirectory(folder);
         var host=new GameObject("Home inline menu capture");
         var rt=new RenderTexture(1440,900,24);

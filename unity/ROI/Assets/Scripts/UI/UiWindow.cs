@@ -31,7 +31,9 @@ namespace Roi.UI
         public event System.Action Opened;
 
         readonly System.Collections.Generic.Dictionary<ScrollRect,Vector2> _scrollPositions=new();
-        GameObject _root;
+        GameObject _root, _modalShade;
+        bool _modal;
+        System.Action _onClose;
         RectTransform _rect;
         TextMeshProUGUI _titleText, _body;
 
@@ -46,7 +48,7 @@ namespace Roi.UI
 
         void Build(string title, System.Action onClose)
         {
-            Title = title;
+            Title = title;_onClose=onClose;
             // This object is only a holder, and a fresh RectTransform defaults to a 100x100 box
             // pinned to the canvas CENTRE — which silently offset every child by half the screen.
             // Stretch it to the canvas so its children can use canvas coordinates directly.
@@ -104,6 +106,14 @@ namespace Roi.UI
             rr.pivot = new Vector2(0.5f, 0f);
             rr.sizeDelta = new Vector2(-UiTheme.Pad * 2f, 1f);
 
+            // WuWa title tick: a short gold bar under the title, flush with its first letter.
+            var tick = UiTheme.Flat(bar, "TitleTick", UiTheme.Accent);
+            tick.raycastTarget = false;
+            var tk = tick.rectTransform;
+            tk.anchorMin = tk.anchorMax = tk.pivot = Vector2.zero;
+            tk.sizeDelta = new Vector2(34f, 2f);
+            tk.anchoredPosition = new Vector2(48f, 0f);
+
             var bodyGo = new GameObject("Body", typeof(RectTransform));
             bodyGo.transform.SetParent(_rect, false);
             Body = (RectTransform)bodyGo.transform;
@@ -116,18 +126,54 @@ namespace Roi.UI
             br.anchorMin = Vector2.zero; br.anchorMax = Vector2.one;
             br.offsetMin = Vector2.zero; br.offsetMax = Vector2.zero;
 
+            var close=HudBar.MakeGhostButton(bar,"",48,44,()=>_onClose?.Invoke());close.name="Close";
+            var cr=(RectTransform)close.transform;cr.anchorMin=cr.anchorMax=cr.pivot=Vector2.one;cr.anchoredPosition=new Vector2(-8,-4);
+            close.GetComponent<Image>().color=Color.clear;
+            var cg=TitleGlyph.Add(close.transform,TitleGlyph.Symbol.Close);cg.rectTransform.sizeDelta=new Vector2(28,28);
             _root.SetActive(false);
         }
 
         public void SetIdentity(string id)
         {
+            if(id=="Options"||id=="Mail")MakeModal();
             var bar=_rect.Find("TitleBar");bar.Find("Accent").gameObject.SetActive(false);
             var go=new GameObject("ScreenIcon",typeof(RectTransform));go.transform.SetParent(bar,false);
             var icon=go.AddComponent<HomeIcon>();icon.Kind=id;icon.color=_titleText.color;icon.raycastTarget=false;
             var r=icon.rectTransform;r.anchorMin=r.anchorMax=new Vector2(0,.5f);r.anchoredPosition=new Vector2(28,0);r.sizeDelta=new Vector2(24,24);
-            _titleText.rectTransform.offsetMin=new Vector2(52,0);
-            if(id=="Cards"||id=="Album"||id=="Character"||id=="Skills"||id=="Regalia")
+            _titleText.rectTransform.offsetMin=new Vector2(58,0);
+            bar.Find("TitleTick").GetComponent<RectTransform>().anchoredPosition=new Vector2(58,0);
+            // The screen icon sits in a thin ring, as WuWa's menu heads do.
+            var ringGo=new GameObject("IconRing",typeof(RectTransform));ringGo.transform.SetParent(bar,false);ringGo.transform.SetSiblingIndex(go.transform.GetSiblingIndex());
+            var ring=ringGo.AddComponent<WuwaActionGlyph>();ring.Confirm=true;ring.Weight=1.2f;ring.raycastTarget=false;ring.color=UiTheme.WithAlpha(UiTheme.Accent,.45f);
+            var ringR=ring.rectTransform;ringR.anchorMin=ringR.anchorMax=new Vector2(0,.5f);ringR.anchoredPosition=new Vector2(30,0);ringR.sizeDelta=new Vector2(48,48);
+            r.anchoredPosition=new Vector2(30,0);
+            if(_modal)_titleText.rectTransform.offsetMax=new Vector2(-60,0);
+            if(id=="Cards"||id=="Album") {
+                string[] routes={"Cards","Album"};
+                for(int i=0;i<routes.Length;i++) {
+                    string route=routes[i];
+                    var tab=HudBar.MakeGhostButton(bar,GameText.ScreenName(route),110,44,()=>Object.FindFirstObjectByType<HudBar>()?.Toggle(route),15);
+                    tab.name="CardSection_"+route;
+                    var rt=(RectTransform)tab.transform;rt.anchorMin=rt.anchorMax=new Vector2(0,.5f);rt.pivot=new Vector2(0,.5f);rt.anchoredPosition=new Vector2(190+i*118,0);
+                    tab.interactable=route!=id;
+                }
+            }
+            if(id=="Cards"||id=="Character"||id=="Skills"||id=="Regalia")
                 PartyMemberPicker.Create((RectTransform)bar,_titleText);
+        }
+
+        void MakeModal() {
+            _modal=true;
+            var shade=UiTheme.Flat(transform,"ModalShade",UiTheme.Scrim);
+            _modalShade=shade.gameObject;shade.transform.SetAsFirstSibling();
+            shade.rectTransform.anchorMin=Vector2.zero;shade.rectTransform.anchorMax=Vector2.one;
+            shade.rectTransform.offsetMin=shade.rectTransform.offsetMax=Vector2.zero;
+            _modalShade.SetActive(false);
+            foreach(var backdrop in _rect.GetComponentsInChildren<RpgBackdrop>(true))backdrop.gameObject.SetActive(false);
+            DialogSurface.Add(_rect);_rect.GetComponent<NoticeDialogStyle>().CompactLogin=true;
+            var bar=(RectTransform)_rect.Find("TitleBar");
+            var header=bar.Find("HeaderSurface").GetComponent<Image>();header.color=new Color(.09f,.092f,.10f,.98f);
+
         }
 
         /// Re-laid out on every open, not once: the chrome rect is derived from the screen size.
@@ -144,6 +190,7 @@ namespace Roi.UI
                     _scrollPositions[scroll]=scroll.normalizedPosition;
             }
             _root.SetActive(on);
+            if(_modalShade!=null)_modalShade.SetActive(on);
             if (on) { Opened?.Invoke(); UiPageTransition.Play(Body); StartCoroutine(RestoreScroll()); }
         }
 
@@ -165,9 +212,11 @@ namespace Roi.UI
         /// different resolution than the window reports, and a window laid out against Screen then
         /// lands off the canvas entirely — which is exactly what it did.
         bool _immersive;
+        internal void CloseSettings() => _onClose?.Invoke();
+
         internal void SetImmersive()
         {
-            _immersive=true;
+            _immersive=true;_modal=false;
             _rect.Find("TitleBar").gameObject.SetActive(false);
             Body.offsetMin=Body.offsetMax=Vector2.zero;
             var c=_root.AddComponent<Canvas>();c.overrideSorting=true;c.sortingOrder=55;
@@ -180,6 +229,7 @@ namespace Roi.UI
             var canvasRect = canvas != null ? (RectTransform)canvas.transform : null;
             var size = canvasRect != null ? canvasRect.rect.size : new Vector2(Screen.width, Screen.height);
             var r = _immersive ? new Rect(0,0,size.x,size.y) : UiLayout.ContentRect(size);
+            if(_modal){float w=Mathf.Min(780,r.width-48),h=Mathf.Min(500,r.height-48);r=new Rect(r.x+(r.width-w)/2,r.y+(r.height-h)/2,w,h);}
             _rect.anchoredPosition = new Vector2(Mathf.Round(r.x), Mathf.Round(r.y));
             _rect.sizeDelta = new Vector2(Mathf.Round(r.width), Mathf.Round(r.height));
         }

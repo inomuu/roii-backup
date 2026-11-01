@@ -76,6 +76,11 @@ namespace Roi.UI
         void Build(RectTransform body)
         {
             _body = body;
+            var art=new GameObject("WorldAtlas",typeof(RectTransform)).AddComponent<UnityEngine.UI.RawImage>();
+            art.transform.SetParent(body,false);art.raycastTarget=false;
+            art.texture=Resources.Load<Texture2D>("MapUI/WorldAtlas-v1");
+            art.rectTransform.anchorMin=Vector2.zero;art.rectTransform.anchorMax=Vector2.one;
+            art.rectTransform.offsetMin=art.rectTransform.offsetMax=Vector2.zero;
             var go = new GameObject("Grid", typeof(RectTransform));
             go.transform.SetParent(body, false);
             _grid = (RectTransform)go.transform;
@@ -126,7 +131,7 @@ namespace Roi.UI
                 int region = i + 1;
                 bool here = region == _here;
                 var tint = Tint[i];
-                var tile = UiTheme.Box(_grid, "R" + region, here ? UiTheme.SurfaceActive : UiTheme.Surface);
+                var tile = UiTheme.Box(_grid, "R" + region, here ? new Color(.08f,.18f,.20f,.94f) : new Color(.025f,.06f,.08f,.68f));
                 UiTheme.Border(tile.rectTransform, here ? UiTheme.Accent : UiTheme.Line,
                                8, here ? 2f : 1f);
                 var rt = tile.rectTransform;

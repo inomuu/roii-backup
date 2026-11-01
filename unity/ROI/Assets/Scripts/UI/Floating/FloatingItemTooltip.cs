@@ -11,39 +11,45 @@ namespace Roi.UI
     // WuWa/Exemplar visual theme; TBH informs information grouping only.
     public sealed class FloatingItemTooltip : MonoBehaviour
     {
-        RectTransform _root,_viewport,_content,_head,_headerRule;
+        RectTransform _root,_viewport,_content,_head,_headerRule,_art;
         TMP_Text _copy,_hint,_title,_meta;
-        Image _border,_iconFrame,_iconBorder,_gradeAccent;
-        ItemGradeSurface _iconSurface;
+        Image _border,_gradeAccent;
         EternalSparkles _iconSparkles;
         ExemplarEquipmentIcon _icon;
         ForgeSigil _gem;
         readonly List<Image> _rules=new();
         float _contentHeight,_viewHeight,_titleHeight,_metaHeight;
         string _text;
+        Canvas _canvas;
+        ItemView _item;
+        bool _isGem;
         public bool Visible=>gameObject.activeSelf;
         public bool CanScroll=>_contentHeight>_viewHeight;
         public string Text=>_text;
         public static FloatingItemTooltip Create(Transform parent)
         {
-            var root=ForgeUi.Panel(parent,"FloatingItemTooltip",0,0,330,200,new Color(ExemplarUi.Deep.r,ExemplarUi.Deep.g,ExemplarUi.Deep.b,1)).rectTransform;
+            var root=ForgeUi.Panel(parent,"FloatingItemTooltip",0,0,330,200,new Color(ExemplarUi.Deep.r,ExemplarUi.Deep.g,ExemplarUi.Deep.b,.96f)).rectTransform;
+            var background=root.GetComponent<Image>();
+            background.sprite=UiTheme.ItemCardFill;background.type=Image.Type.Sliced;
             var t=root.gameObject.AddComponent<FloatingItemTooltip>();t._root=root;
-            t._border=UiTheme.Border(root,ExemplarUi.Line,2);
+            t._canvas=parent.GetComponentInParent<Canvas>();
+            var overlay=root.gameObject.AddComponent<Canvas>();
+            overlay.overrideSorting=true;overlay.sortingOrder=49;
+            t._border=UiTheme.Border(root,UiTheme.WithAlpha(ExemplarUi.Line,.24f),16);
+            t._border.sprite=UiTheme.ItemCardFrame;
             t._head=ForgeUi.Rect(root,"Title",12,8,306,32);
             t._gradeAccent=ForgeUi.Panel(root,"GradeAccent",0,0,3,84,ExemplarUi.Muted);
-            t._title=ForgeUi.Text(t._head,"Name","",0,0,306,32,17,ExemplarUi.White);t._title.fontStyle=FontStyles.Bold;t._title.richText=false;
+            t._title=ForgeUi.Text(t._head,"Name","",0,0,306,32,20,ExemplarUi.White);t._title.fontStyle=FontStyles.Bold;t._title.richText=false;
             ForgeUi.Wrap(t._title);t._title.overflowMode=TextOverflowModes.Overflow;
-            t._iconFrame=ForgeUi.Panel(root,"ItemFrame",12,46,38,38,Color.white);
-            t._iconSurface=t._iconFrame.gameObject.AddComponent<ItemGradeSurface>();
-            t._iconSparkles=ForgeUi.Rect(t._iconFrame.transform,"EternalSparkles",0,0,38,38).gameObject.AddComponent<EternalSparkles>(); t._iconSparkles.raycastTarget=false;
-            t._iconBorder=UiTheme.Border(t._iconFrame.rectTransform,ExemplarUi.Line,2);
-            var symbol=ForgeUi.Rect(t._iconFrame.transform,"Symbol",4,4,30,30);
+            t._art=ForgeUi.Rect(root,"ItemArtwork",198,14,120,120);
+            t._iconSparkles=ForgeUi.Rect(t._art,"EternalSparkles",0,0,120,120).gameObject.AddComponent<EternalSparkles>(); t._iconSparkles.raycastTarget=false;
+            var symbol=ForgeUi.Rect(t._art,"Symbol",0,0,120,120);
             t._icon=ExemplarEquipmentIcon.Create(symbol,"Weapon");t._gem=symbol.gameObject.AddComponent<ForgeSigil>();t._gem.color=new Color(.5f,.83f,.95f);
-            t._meta=ForgeUi.Text(root,"GradeSlot","",60,45,258,42,12);ForgeUi.Wrap(t._meta);t._meta.richText=false;
+            t._meta=ForgeUi.Text(root,"GradeSlot","",60,45,258,42,13);ForgeUi.Wrap(t._meta);t._meta.richText=false;
             t._headerRule=ForgeUi.Panel(root,"HeaderRule",12,92,306,1,ExemplarUi.Line).rectTransform;
             t._viewport=ForgeUi.Rect(root,"Viewport",12,101,306,156);t._viewport.gameObject.AddComponent<RectMask2D>();
             t._content=ForgeUi.Rect(t._viewport,"Content",0,0,306,156);
-            t._copy=ForgeUi.Text(t._content,"FullItemDetails","",0,0,306,156,13);ForgeUi.Wrap(t._copy);
+            t._copy=ForgeUi.Text(t._content,"FullItemDetails","",0,0,306,156,14);ForgeUi.Wrap(t._copy);
             t._copy.overflowMode=TextOverflowModes.Overflow;t._copy.richText=true;
             t._hint=ForgeUi.Copy(root,"UI_FLOAT_HOVER_SCROLL",12,178,306,18,10,ExemplarUi.Muted);
             foreach(var g in root.GetComponentsInChildren<Graphic>(true))g.raycastTarget=false;
@@ -53,32 +59,37 @@ namespace Roi.UI
         {
             if(string.IsNullOrEmpty(text)){Hide();return;}
             gameObject.SetActive(true);transform.SetAsLastSibling();
-            float scale=GetComponentInParent<Canvas>().scaleFactor;
+            float scale=_canvas.scaleFactor;
             float width=Mathf.Min(330,Screen.width/scale-16),maxHeight=Screen.height/scale-16,inner=width-24;
-            bool changed=_text!=text||Mathf.Abs(_root.rect.width-width)>.1f;
+            bool changed=_text!=text||_item!=item||_isGem!=gem||Mathf.Abs(_root.rect.width-width)>.1f;
             if(changed)
             {
-                _text=text;var lines=text.Split('\n');_title.text=lines[0];_meta.text=lines.Length>1?lines[1]:"";
+                _text=text;_item=item;_isGem=gem;var lines=text.Split('\n');_title.text=lines[0];_meta.text=lines.Length>1?lines[1]:"";
+                int split=_meta.text.IndexOf(" · ",StringComparison.Ordinal);
+                if(split>=0)_meta.text=_meta.text.Substring(0,split)+"\n"+_meta.text.Substring(split+3);
                 _title.color=item==null?ExemplarUi.White:ItemGradeSurface.TextAccent(item,gem);
                 _meta.color=_gradeAccent.color=item==null?ExemplarUi.Muted:ItemGradeSurface.Accent(item,gem);
-                _iconSurface.Bind(item,gem);_iconBorder.color=ItemGradeSurface.Accent(item,gem);
                 _iconSparkles.Bind(item!=null&&item.grade_step>=8,item!=null&&item.grade_step==8);
-                _iconFrame.gameObject.SetActive(item!=null);_icon.enabled=item!=null&&!gem;_gem.enabled=gem;
+                _art.gameObject.SetActive(item!=null);_icon.enabled=item!=null&&!gem;_gem.enabled=gem;
                 if(item!=null)_icon.SetItem(item,item.slot);
                 _copy.text=Style(string.Join("\n",lines.Skip(2)));
                 _contentHeight=_copy.GetPreferredValues(_copy.text,inner,10000).y+6;
                 _content.anchoredPosition=Vector2.zero;
-                _titleHeight=Mathf.Max(25,_title.GetPreferredValues(_title.text,inner,10000).y+2);
-                _metaHeight=Mathf.Max(38,_meta.GetPreferredValues(_meta.text,width-72,10000).y+2);
+                _titleHeight=Mathf.Max(25,_title.GetPreferredValues(_title.text,item==null?inner:inner-134,10000).y+2);
+                _metaHeight=Mathf.Max(38,_meta.GetPreferredValues(_meta.text,item==null?inner:inner-134,10000).y+2);
             }
             float titleHeight=_titleHeight,metaHeight=_metaHeight;
-            float bodyTop=titleHeight+metaHeight+36;
-            float height=Mathf.Min(maxHeight,_contentHeight+bodyTop+30);_viewHeight=height-bodyTop-30;
+            float textWidth=item==null?inner:inner-134;
+            float bodyTop=Mathf.Max(item==null?0:148,titleHeight+metaHeight+40);
+            float height=Mathf.Min(maxHeight,_contentHeight+bodyTop+16);
+            float footer=_contentHeight+bodyTop+16>maxHeight?30:16;
+            _viewHeight=Mathf.Max(1,height-bodyTop-footer);
             _root.sizeDelta=new Vector2(width,height);
-            ForgeUi.Place(_head,12,8,inner,titleHeight);_title.rectTransform.sizeDelta=new Vector2(inner,titleHeight);
-            ForgeUi.Place(_iconFrame.rectTransform,12,titleHeight+16,38,38);
-            ForgeUi.Place(_meta.rectTransform,item==null?12:60,titleHeight+16,item==null?inner:width-72,metaHeight);
-            ForgeUi.Place(_headerRule,12,bodyTop-8,inner,1);_gradeAccent.rectTransform.sizeDelta=new Vector2(3,bodyTop-8);
+            ForgeUi.Place(_head,12,14,textWidth,titleHeight);_title.rectTransform.sizeDelta=new Vector2(textWidth,titleHeight);
+            ForgeUi.Place(_art,width-132,14,120,120);
+            ForgeUi.Place(_meta.rectTransform,12,titleHeight+20,textWidth,metaHeight);
+            ForgeUi.Place(_headerRule,12,bodyTop-10,inner,1);
+            ForgeUi.Place(_gradeAccent.rectTransform,0,bodyTop-9,width,3);
             ForgeUi.Place(_viewport,12,bodyTop,inner,_viewHeight);
             _content.sizeDelta=new Vector2(inner,_contentHeight);_copy.rectTransform.sizeDelta=_content.sizeDelta;
             ForgeUi.Place(_hint.rectTransform,12,height-24,inner,18);_hint.gameObject.SetActive(CanScroll);
@@ -101,7 +112,9 @@ namespace Roi.UI
                 bool effect=effects.Contains(line);
                 // Native text remains literal; it cannot inject TMP formatting tags.
                 string literal="<noparse>"+line.Replace("</noparse>","")+"</noparse>";
-                if(line==cardSlot)s.Append("<b><color=#F1C86B>").Append(literal).Append("</color></b>");
+                bool primary=new[]{"UI_EXEMPLAR_ATK","UI_EXEMPLAR_MATK","UI_EXEMPLAR_DEF"}.Any(key=>line.StartsWith(Loc.Get(key)+"  ",StringComparison.Ordinal));
+                if(primary)s.Append("<size=19><b><color=#F3E6BA>").Append(literal).Append("</color></b></size>");
+                else if(line==cardSlot)s.Append("<b><color=#F1C86B>").Append(literal).Append("</color></b>");
                 else if(line==gemSlot)s.Append("<b><color=#73D7C2>").Append(literal).Append("</color></b>");
                 else if(effect||line==Loc.Get("UI_FLOAT_SOCKET_DETAILS"))s.Append("<b><color=#D9DFE4>").Append(literal).Append("</color></b>");
                 else s.Append("<color=#").Append(line.StartsWith("   ",StringComparison.Ordinal)?"85D4BF":ink).Append('>').Append(literal).Append("</color>");

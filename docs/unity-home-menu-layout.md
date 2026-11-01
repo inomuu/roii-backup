@@ -1,3 +1,51 @@
+## Reference redesign — 2026-10-30
+
+Supersedes the earlier illustrated gold lobby. The user supplied a second screenshot and
+requested its visual layout. `HomeMenuLayout.Tactical.cs` now places the character/dragon
+background behind a left utility rail, level/name plate, lower-left news banner, compact
+wallet, and stacked right-side Campaign, Team, Members, services, and inventory panels.
+Black/blue rectangular panels and condensed headings replace the gold rounded navigation.
+
+`TacticalLobby114.png` is an image-generation reconstruction of the supplied screenshot with
+the baked-in UI removed; it is not an exact original source asset. All menus are native Unity
+buttons. Player level, name, stage, state, and currency values remain live game data.
+`HomeWalletBar` applies the new layout only when its optional tactical flag is enabled.
+
+Validation: `UiGalleryProbe.Tactical114` (1472 × 828) and `Tactical114Compact` (1024 × 768).
+The disposable fixture checks primary button hit targets, menu routing, Home shortcut,
+character Back, return to combat, secondary menus, and Thai text. Editor toolbar layout
+errors are tracked separately from game assertions. No online transactions are exercised.
+
+## UI review — 2026-10-30
+
+The current Home implementation is `HomeMenuLayout`: illustrated lobby, four quick links,
+six labeled bottom destinations, wallet, More, and a dedicated battle panel.
+ModeTabs retains the seven existing combat shortcuts and adds Home; startup remains in
+combat. Character Back returns to its originating mode. The older
+staggered Story-card layout described below is historical, not the current screen.
+
+This review restored visible bottom-navigation captions, widened the quick links to avoid
+truncated names, and exposed the current stage and simulation/save-wait state above Return
+to battle. Character pages now name the inspected unit in the header, explain the active
+page, provide Back, and prioritize Equipment in Attributes. The equipment picker compares
+against an empty slot as well as an equipped item.
+
+The floating inventory keeps its existing tool panels and native item actions. It adds
+All/Gear/Gems/Other filtering, optional grade ordering, a visible selected-item marker,
+an explicit Equip action, and equipment comparison in the tooltip. Sorting changes only
+cell placement; native inventory indices are retained for clicks and drag payloads. Changing
+a bag filter clears the previous selection so hidden items cannot remain actionable.
+
+A real equip regression surfaced during validation: the host appends the recipient-dependent
+`off_family` display flag only to equipped item projections. The identity verifier now
+excludes that derived field alongside the placement fields, while preserving all intrinsic
+item properties and conservation checks.
+
+Validation entry points: `UiGalleryProbe.Review113`, `Review113Compact`, `Review113Mobile`,
+and `Home101`. They use disposable sessions and exercise filtered equip, sorted equip,
+removal, tool panels, English/Thai layouts and Home routing. They do not verify live
+transactions or persistence. Captures: `D:/roii/idle_mmorpg/ui-gallery/review-113*`.
+
 # Unity Home menu — graphics worktree
 
 เริ่มงานต่อ / current handoff: [Unity UI — Luna 5.6](unity-ui-luna-handoff.md) (2026-09-14).

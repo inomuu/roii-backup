@@ -35,9 +35,15 @@ namespace Roi.UI
         static readonly int[] VolumeSteps = { 0, 25, 50, 75, 100 };
         static readonly string[] VolumeLabels = { "Off", "25", "50", "75", "100" };
 
-        const float RowH = 60f, BtnW = 116f, BtnH = 44f;
+        const float RowH = 82f, BtnW = 116f, BtnH = 44f;
 
         RectTransform _content;
+        int _page;
+        TMP_Text _heading;
+        TitleGlyph _headingIcon;
+        ShopSelectionArc _arc;
+        readonly List<MenuNavigationButton> _tabs=new();
+
         TextMeshProUGUI _status;
         readonly List<GameObject> _built = new();
 
@@ -100,7 +106,23 @@ namespace Roi.UI
 
         void Build(RectTransform body)
         {
-            float pad = UiTheme.PadLarge;
+            var window=body.GetComponentInParent<UiWindow>();
+            window.SetImmersive();
+            var panel=(RectTransform)body.parent;
+            foreach(Transform child in panel)if(child!=body)child.gameObject.SetActive(false);
+            var dialog=panel.GetComponent<NoticeDialogStyle>();if(dialog!=null)dialog.enabled=false;
+            panel.GetComponent<Image>().sprite=null;
+            panel.GetComponent<Image>().color=UiTheme.WithAlpha(UiTheme.Panel,.9f);
+            _heading=UiTheme.Label(body,"Heading","",25,UiTheme.TextHigh,TextAlignmentOptions.Left);
+            Position(_heading.rectTransform,74,20,600,48);
+            _headingIcon=TitleGlyph.Add(body,TitleGlyph.Symbol.Support);Position(_headingIcon.rectTransform,28,26,34,34);
+            var close=HudBar.MakeGhostButton(body,"",48,48,()=>window.CloseSettings());
+            var cr=(RectTransform)close.transform;cr.anchorMin=cr.anchorMax=cr.pivot=Vector2.one;cr.anchoredPosition=new Vector2(-22,-18);
+            var ci=TitleGlyph.Add(close.transform,TitleGlyph.Symbol.Close);ci.rectTransform.sizeDelta=new Vector2(30,30);
+            for(int i=0;i<3;i++){int page=i;var b=CollectionBrowser.Quiet(body,"Tab"+i,"",0,0,1,1,()=>{_page=page;Refresh();});Position((RectTransform)b.transform,20,100+i*94,64,72);b.IsTab=true;var icon=TitleGlyph.Add(b.transform,i==0?TitleGlyph.Symbol.Support:i==1?TitleGlyph.Symbol.Settings:TitleGlyph.Symbol.Globe);icon.rectTransform.sizeDelta=new Vector2(40,40);b.CategoryIcon=icon;_tabs.Add(b);}
+            var seam=new GameObject("CategorySeam",typeof(RectTransform));seam.transform.SetParent(body,false);var seamRect=(RectTransform)seam.transform;seamRect.anchorMin=new Vector2(0,0);seamRect.anchorMax=new Vector2(0,1);seamRect.pivot=new Vector2(0,1);seamRect.offsetMin=new Vector2(53,20);seamRect.offsetMax=new Vector2(117,-80);_arc=seam.AddComponent<ShopSelectionArc>();_arc.raycastTarget=false;
+            float pad = 132;
+
             _status = UiTheme.Label(body, "Status", "", UiTheme.CaptionSize, UiTheme.TextLow,
                                     TextAlignmentOptions.Left);
             _status.textWrappingMode = TextWrappingModes.NoWrap;
@@ -113,8 +135,8 @@ namespace Roi.UI
             host.transform.SetParent(body, false);
             var hrt = (RectTransform)host.transform;
             hrt.anchorMin = Vector2.zero; hrt.anchorMax = Vector2.one;
-            hrt.offsetMin = new Vector2(pad, UiTheme.Pad);
-            hrt.offsetMax = new Vector2(-pad, -(40f + UiTheme.Gap));
+            hrt.offsetMin = new Vector2(pad, 30);
+            hrt.offsetMax = new Vector2(-60, -94);
             _content = UiScroll.Create(hrt, out _);
         }
 
@@ -124,7 +146,13 @@ namespace Roi.UI
             _status.text = "";
             float y = 0f;
 
-            Head(ref y, "Display");
+            string[] headings={"UI_SETTINGS_SOUND","UI_SETTINGS_GRAPHICS","UI_SETTINGS_LANGUAGE"};
+            _heading.text=Loc.Get(headings[_page]);_headingIcon.Kind=_page==0?TitleGlyph.Symbol.Support:_page==1?TitleGlyph.Symbol.Settings:TitleGlyph.Symbol.Globe;_headingIcon.SetVerticesDirty();
+            for(int i=0;i<_tabs.Count;i++)_tabs[i].SetActiveState(i==_page);
+            Canvas.ForceUpdateCanvases();
+            _arc.SelectNormalized((56+_page*94f)/Mathf.Max(1,_arc.rectTransform.rect.height));
+            if(_page==1){
+            Head(ref y, Loc.Get("UI_SETTINGS_DISPLAY"));
             Segmented(ref y, "Screen", new[] { "Windowed", "Fullscreen" },
                       PlayerPrefs.HasKey(KeyFullscreen) ? PlayerPrefs.GetInt(KeyFullscreen)
                                                         : (Screen.fullScreen ? 1 : 0),
@@ -174,22 +202,14 @@ namespace Roi.UI
                       PlayerPrefs.GetInt(UiEntrance.ReducedMotionKey, 0),
                       i => { PlayerPrefs.SetInt(UiEntrance.ReducedMotionKey, i); PlayerPrefs.Save(); });
 
-            Head(ref y, "Audio");
-            Segmented(ref y, "Music", VolumeLabels, StepOf(PlayerPrefs.GetInt(KeyMusic, 70)),
-                      i =>
-                      {
-                          PlayerPrefs.SetInt(KeyMusic, VolumeSteps[i]);
-                          Roi.Audio.SoundFx.SetVolumes(VolumeSteps[i] / 100f,
-                                                       Roi.Audio.SoundFx.SfxVolume);
-                      });
-            Segmented(ref y, "Sound", VolumeLabels, StepOf(PlayerPrefs.GetInt(KeySfx, 80)),
-                      i =>
-                      {
-                          PlayerPrefs.SetInt(KeySfx, VolumeSteps[i]);
-                          Roi.Audio.SoundFx.SetVolumes(Roi.Audio.SoundFx.MusicVolume,
-                                                       VolumeSteps[i] / 100f);
-                      });
-
+            }
+            if(_page==0){
+            Head(ref y, Loc.Get("UI_SETTINGS_VOLUME"));
+            Volume(ref y,Loc.Get("UI_SETTINGS_MASTER"),"roi.opt.master",100,v=>AudioListener.volume=v/100f);
+            Volume(ref y,Loc.Get("UI_TITLE_MUSIC"),KeyMusic,70,v=>Roi.Audio.SoundFx.SetVolumes(v/100f,Roi.Audio.SoundFx.SfxVolume));
+            Volume(ref y,Loc.Get("UI_TITLE_SOUND"),KeySfx,80,v=>Roi.Audio.SoundFx.SetVolumes(Roi.Audio.SoundFx.MusicVolume,v/100f));
+            }
+            if(_page==2){Head(ref y,Loc.Get("UI_SETTINGS_TEXT"));Segmented(ref y,Loc.Get("UI_SETTINGS_LANGUAGE"),new[]{"English","\u0e44\u0e17\u0e22"},Loc.Language=="th"?1:0,i=>{Loc.Language=i==0?"en":"th";PlayerPrefs.SetString("roi.opt.language",Loc.Language);PlayerPrefs.Save();});}
             UiScroll.Fit(_content, y + UiTheme.Pad);
         }
 
@@ -208,43 +228,42 @@ namespace Roi.UI
         void Segmented(ref float y, string label, string[] options, int selected,
                        System.Action<int> onPick)
         {
-            var ground=UiTheme.Flat(_content,"SettingRow",new Color(UiTheme.Surface.r,UiTheme.Surface.g,UiTheme.Surface.b,.85f));ground.raycastTarget=false;
-            Place(ground.rectTransform,y,RowH-4);_built.Add(ground.gameObject);
+            var ground=UiTheme.Box(_content,"SettingRow",UiTheme.WithAlpha(UiTheme.Surface,.65f),10);ground.sprite=UiTheme.CutFill(8);ground.raycastTarget=false;
+            Place(ground.rectTransform,y,72);_built.Add(ground.gameObject);
             var cap = UiTheme.Label(_content, "L_" + label, label, UiTheme.BodySize, UiTheme.TextHigh,
                                     TextAlignmentOptions.Left);
-            Place(cap.rectTransform, y + 12f, 28f);
-            cap.rectTransform.offsetMin=new Vector2(14,cap.rectTransform.offsetMin.y);
+            Place(cap.rectTransform, y, 72f);
+            cap.rectTransform.offsetMin=new Vector2(20,cap.rectTransform.offsetMin.y);
             _built.Add(cap.gameObject);
 
-            float x = 220f;
-            for (int i = 0; i < options.Length; i++)
-            {
-                int idx = i;
-                var b = HudBar.MakeGhostButton(_content, options[i], BtnW, BtnH,
-                                               () => { onPick(idx); Refresh(); }, UiTheme.BodySize);
-                var t = b.GetComponentInChildren<TextMeshProUGUI>();
-                b.GetComponent<Image>().color = i == selected ? UiTheme.SurfaceActive : UiTheme.Surface;
-                b.colors = UiTheme.ButtonColors;
-                b.targetGraphic.CrossFadeColor(Color.white,0f,true,true);
-                t.color = i == selected ? UiTheme.Accent : UiTheme.TextLow;
-                if (i == selected) UiTheme.Border((RectTransform)b.transform, UiTheme.Accent);
-                var rt = (RectTransform)b.transform;
-                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-                rt.pivot = new Vector2(0f, 1f);
-                rt.anchoredPosition = new Vector2(x, -(y + 4f));
-                _built.Add(b.gameObject);
-                x += BtnW + UiTheme.Gap;
-            }
+            int selectedIndex=Mathf.Clamp(selected,0,options.Length-1);
+            var value=UiTheme.Label(_content,"Value",options[selectedIndex],23,UiTheme.Accent,TextAlignmentOptions.Center);Place(value.rectTransform,y,72);value.rectTransform.anchorMin=new Vector2(.62f,1);value.rectTransform.anchorMax=new Vector2(.9f,1);_built.Add(value.gameObject);
+            for(int direction=-1;direction<=1;direction+=2){int step=direction;var button=CollectionBrowser.Quiet(_content,"Choice",direction<0?"<":">",0,0,1,1,()=>{onPick((selectedIndex+step+options.Length)%options.Length);PlayerPrefs.Save();Refresh();});var rt=(RectTransform)button.transform;rt.anchorMin=rt.anchorMax=new Vector2(direction<0?.57f:.92f,1);rt.pivot=new Vector2(.5f,1);rt.anchoredPosition=new Vector2(0,-y-10);rt.sizeDelta=new Vector2(44,52);button.Caption.color=UiTheme.TextHigh;var buttonSurface=button.GetComponent<Image>();buttonSurface.sprite=UiTheme.CutFill(8);buttonSurface.type=Image.Type.Sliced;_built.Add(button.gameObject);}
             y += RowH;
+        }
+
+        static void Position(RectTransform rt,float x,float y,float w,float h){rt.anchorMin=rt.anchorMax=rt.pivot=new Vector2(0,1);rt.anchoredPosition=new Vector2(x,-y);rt.sizeDelta=new Vector2(w,h);}
+        void Volume(ref float y,string label,string pref,int fallback,System.Action<int> apply){
+            var row=UiTheme.Box(_content,"Volume",UiTheme.WithAlpha(UiTheme.Surface,.65f),10);row.sprite=UiTheme.CutFill(8);Place(row.rectTransform,y,72);_built.Add(row.gameObject);
+            var text=UiTheme.Label(row.transform,"Label",label,23,UiTheme.TextHigh,TextAlignmentOptions.Left);text.rectTransform.anchorMin=Vector2.zero;text.rectTransform.anchorMax=new Vector2(.52f,1);text.rectTransform.offsetMin=new Vector2(20,0);text.rectTransform.offsetMax=Vector2.zero;
+            var host=new GameObject("Slider",typeof(RectTransform));host.transform.SetParent(row.transform,false);var rt=(RectTransform)host.transform;rt.anchorMin=new Vector2(.6f,.5f);rt.anchorMax=new Vector2(.87f,.5f);rt.sizeDelta=new Vector2(0,28);
+            var slider=host.AddComponent<Slider>();slider.minValue=0;slider.maxValue=100;slider.wholeNumbers=true;
+            var track=UiTheme.Box(rt,"Track",UiTheme.Panel,4);track.rectTransform.anchorMin=new Vector2(0,.5f);track.rectTransform.anchorMax=new Vector2(1,.5f);track.rectTransform.sizeDelta=new Vector2(0,7);
+            var fill=UiTheme.Box(track.transform,"Fill",UiTheme.Accent,4);fill.rectTransform.anchorMin=Vector2.zero;fill.rectTransform.anchorMax=Vector2.one;fill.rectTransform.offsetMin=fill.rectTransform.offsetMax=Vector2.zero;slider.fillRect=fill.rectTransform;
+            var handle=UiTheme.Box(rt,"Handle",UiTheme.Ivory,7);handle.rectTransform.sizeDelta=new Vector2(14,0);slider.handleRect=handle.rectTransform;slider.targetGraphic=handle;
+            var number=UiTheme.Label(row.transform,"Value","",22,UiTheme.Accent,TextAlignmentOptions.Center);var nr=number.rectTransform;nr.anchorMin=new Vector2(.89f,0);nr.anchorMax=new Vector2(1,1);nr.offsetMin=nr.offsetMax=Vector2.zero;
+            slider.SetValueWithoutNotify(PlayerPrefs.GetInt(pref,fallback));number.text=slider.value.ToString("0");slider.onValueChanged.AddListener(v=>{int n=Mathf.RoundToInt(v);number.text=n.ToString();PlayerPrefs.SetInt(pref,n);apply(n);PlayerPrefs.Save();});y+=82;
         }
 
         void Head(ref float y, string text)
         {
+            var strip=UiTheme.Box(_content,"Section",UiTheme.Header,6);Place(strip.rectTransform,y,34);_built.Add(strip.gameObject);
             var t = UiTheme.Caps(_content, "H_" + text, text, UiTheme.HeadSize,
                                  UiTheme.Accent, TextAlignmentOptions.Left);
-            Place(t.rectTransform, y, 26f);
+            Place(t.rectTransform, y, 34f);
+            t.rectTransform.offsetMin=new Vector2(14,t.rectTransform.offsetMin.y);
             _built.Add(t.gameObject);
-            y += 26f;
+            y += 44f;
         }
 
         void Place(RectTransform rt, float y, float h)
@@ -257,7 +276,7 @@ namespace Roi.UI
 
         void Clear()
         {
-            foreach (var go in _built) Destroy(go);
+            foreach (var go in _built) {go.SetActive(false);Destroy(go);}
             _built.Clear();
         }
     }

@@ -31,8 +31,6 @@ namespace Roi.UI
         // mouse and a coin-flip with a finger, and this is the surface a player touches most.
         const float BarH = UiLayout.BottomBar, BtnW = 138f, BtnH = UiLayout.Touch;
         const float BtnGap = 8f, BtnPad = UiTheme.Pad;
-        const int MenuCols = 3;
-        const float CellW = 176f, CellH = UiLayout.Touch, CellGap = 8f, MenuPad = UiTheme.Pad;
 
         /// label, hotkey, and nothing else yet — the Godot list carries a node per row and a
         /// `station` for the two entries that share the craft bench; both arrive with the screens.
@@ -102,8 +100,7 @@ namespace Roi.UI
         RectTransform _fade;
         Image _fadeImg;
         CombatBar _combat;
-        RectTransform _barRoot, _menuPanel, _sysRoot;
-        Button _menuBtn;
+        RectTransform _barRoot, _sysRoot;
         Vector2Int _lastScreen;
 
         public static HudBar Create(Transform parent)
@@ -320,7 +317,6 @@ namespace Roi.UI
                 }
 
             BuildBar();
-            BuildMenu();
             BuildSystemMenu();
             SyncActiveStates();
             var cs = ((RectTransform)_windowCanvas.transform).rect.size;
@@ -402,10 +398,6 @@ namespace Roi.UI
             _barRoot.anchoredPosition = new Vector2(-BtnPad, -58f);
 
             float x = 0f;
-            _menuBtn = MakeButton(_barRoot, Loc.Get("UI_COMMON_MENU"), "", BtnW, BtnH,
-                                  () => SetMenuOpen(!_menuPanel.gameObject.activeSelf));
-            DecorateBarButton(_menuBtn, "Options");
-            PlaceInBar(_menuBtn, ref x);
             foreach (var label in Essentials)
             {
                 var e = Find(label);
@@ -444,87 +436,14 @@ namespace Roi.UI
         }
 
         // A compact category index; secondary destinations use quiet, full-row hit targets.
-        void BuildMenu()
-        {
-            // Opaque for the same reason UiWindow's body is: linear compositing lets a 0.98 panel
-            // show far more of the scene than the number suggests.
-            var panel = UiTheme.Box(_barCanvas.transform, "MenuPanel", UiTheme.Panel);
-            UiTheme.Border(panel.rectTransform, UiTheme.LineStrong);
-            _menuPanel = panel.rectTransform;
-            _menuPanel.pivot = Vector2.one;
-            _menuPanel.anchorMin = _menuPanel.anchorMax = Vector2.one;
-            string[][] groups={
-                new[]{"Map","Dungeon","Story","Daily","Weekly","Events","Pass","Commander","Outpost","Record","Bestiary"},
-                new[]{"Exemplar","Party","Character","Skills","Paths","Cards","Album","Regalia","Provisions","Summon"},
-                new[]{"Inventory","Stash","Shop","Trade","Crystal","Apothecary","Mail","Options"}
-            };
-            string[] categories={"UI_NAV_ADVENTURE","UI_NAV_ROSTER","UI_NAV_SUPPLIES"};
-            float headH=76f;
-            float width=760f;
-            float tabW=(width-MenuPad*2-CellGap*2)/3;
-            float itemW=(width-MenuPad*2-CellGap)/2;
-            _menuPanel.sizeDelta=new Vector2(width,244+3*(CellH+CellGap)+MenuPad*2+headH);
-            var sections=new GameObject[groups.Length];
-            var tabs=new Button[groups.Length];
-            void SelectCategory(int selected) {
-                for(int i=0;i<sections.Length;i++) {
-                    if(sections[i]!=null)sections[i].SetActive(i==selected);
-                    if(tabs[i]!=null)SetPressed(tabs[i],i==selected);
-                }
-            }
-            for(int col=0;col<groups.Length;col++) {
-                int category=col;
-                tabs[col]=MakeMenuNavigation(_menuPanel,Loc.Get(categories[col]),"",tabW,CellH,()=>SelectCategory(category),true);
-                var hr=(RectTransform)tabs[col].transform;hr.anchorMin=hr.anchorMax=new Vector2(0,1);hr.pivot=new Vector2(0,1);
-                hr.anchoredPosition=new Vector2(MenuPad+col*(tabW+CellGap),-MenuPad);
-                var section=new GameObject("MenuCategory"+col,typeof(RectTransform));section.transform.SetParent(_menuPanel,false);sections[col]=section;
-                var sectionRect=(RectTransform)section.transform;sectionRect.anchorMin=Vector2.zero;sectionRect.anchorMax=Vector2.one;sectionRect.offsetMin=sectionRect.offsetMax=Vector2.zero;
-                if(col==0) {
-                    var art=new GameObject("AtlasArtwork",typeof(RectTransform),typeof(RawImage));art.transform.SetParent(sectionRect,false);
-                    var raw=art.GetComponent<RawImage>();raw.texture=Resources.Load<Texture2D>("HomeUI/MenuAtlas");raw.raycastTarget=false;
-                    var ar=raw.rectTransform;ar.anchorMin=ar.anchorMax=new Vector2(0,1);ar.pivot=new Vector2(0,1);ar.anchoredPosition=new Vector2(MenuPad,-(MenuPad+headH));ar.sizeDelta=new Vector2(width-MenuPad*2,230);
-                }
-                for(int row=0;row<groups[col].Length;row++) {
-                    string id=groups[col][row];var e=System.Array.Find(Entries,item=>item.Label==id);
-                    float rowW=col==0 && row>=2?(width-MenuPad*2-CellGap*2)/3:itemW;
-                    var button=MakeMenuNavigation(sectionRect,GameText.ScreenName(id),e.KeyLabel,rowW,CellH,()=>{Toggle(id);SetMenuOpen(false);});
-                    var label=button.transform.Find("Label").GetComponent<TextMeshProUGUI>();label.alignment=TextAlignmentOptions.Left;
-                    label.rectTransform.offsetMin=new Vector2(39,0);label.fontSize=14;
-                    _windowButtons.Add((button,id));
-                    var r=button.GetComponent<RectTransform>();r.anchorMin=r.anchorMax=new Vector2(0,1);r.pivot=new Vector2(0,1);
-                    r.anchoredPosition=new Vector2(MenuPad+(row%2)*(itemW+CellGap),-(MenuPad+headH+(row/2)*(CellH+CellGap)));
-                    if(col==0) {
-                        if(row<2) r.anchoredPosition=new Vector2(MenuPad+row*(itemW+CellGap),-(MenuPad+headH+176));
-                        else r.anchoredPosition=new Vector2(MenuPad+((row-2)%3)*(rowW+CellGap),-(MenuPad+headH+244+((row-2)/3)*(CellH+CellGap)));
-                    }
-                    var icon=new GameObject("Icon",typeof(RectTransform));icon.transform.SetParent(r,false);
-                    var graphic=icon.AddComponent<HomeIcon>();graphic.Kind=id;graphic.color=UiTheme.Accent;graphic.raycastTarget=false;
-                    graphic.rectTransform.anchorMin=graphic.rectTransform.anchorMax=new Vector2(0,.5f);graphic.rectTransform.anchoredPosition=new Vector2(21,0);graphic.rectTransform.sizeDelta=new Vector2(22,22);
-                }
-            }
-            // Fine rules and a central jewel echo the celestial icon set without framing every row.
-            var rule=UiTheme.Flat(_menuPanel,"CategoryRule",new Color(.65f,.58f,.38f,.32f));
-            rule.raycastTarget=false;
-            var rr=rule.rectTransform;rr.anchorMin=rr.anchorMax=new Vector2(.5f,1);rr.sizeDelta=new Vector2(width-MenuPad*2,1);rr.anchoredPosition=new Vector2(0,-(MenuPad+CellH+12));
-            var jewel=UiTheme.Flat(_menuPanel,"CategoryJewel",UiTheme.Accent);jewel.raycastTarget=false;
-            var jr=jewel.rectTransform;jr.anchorMin=jr.anchorMax=new Vector2(.5f,1);jr.sizeDelta=new Vector2(5,5);jr.anchoredPosition=rr.anchoredPosition;jr.localRotation=Quaternion.Euler(0,0,45);
-            SelectCategory(0);
-            _menuPanel.gameObject.SetActive(false);
-        }
-
+        // Legacy Menu requests resolve to the single Home navigation surface.
         void SetMenuOpen(bool on)
         {
-            _menuPanel.gameObject.SetActive(on);
-            SetPressed(_menuBtn, on);
-            if (on)
-            {
-                float top = -_barRoot.anchoredPosition.y + BtnH + UiTheme.Gap;
-                var canvasSize = ((RectTransform)_barCanvas.transform).rect.size;
-                float scale = Mathf.Min(1f, (canvasSize.y - top - BtnPad) / _menuPanel.rect.height,
-                                        (canvasSize.x - BtnPad * 2) / _menuPanel.rect.width);
-                _menuPanel.localScale = Vector3.one * Mathf.Max(.1f, scale);
-                _menuPanel.anchoredPosition = new Vector2(-BtnPad, -top);
-            }
+            if(!on || UiConfirm.BlocksNavigation)return;
+            var modes=Object.FindFirstObjectByType<ModeTabs>();
+            if(modes==null)return;
+            modes.Select(false);
+            Object.FindFirstObjectByType<HomeMenuLayout>()?.OpenMore();
         }
 
         // Escape with nothing open: Return to Login / Quit / Cancel.
@@ -567,6 +486,7 @@ namespace Roi.UI
                                          () => _sysRoot.gameObject.SetActive(false), UiTheme.HeadSize);
             Place(cancel, new Vector2(0.5f, 1f), new Vector2(0f, -148f));
 
+            DialogSurface.CloseIcon(panel,()=>_sysRoot.gameObject.SetActive(false));
             _sysRoot.gameObject.SetActive(false);
         }
 
@@ -601,6 +521,7 @@ namespace Roi.UI
         public void Toggle(string label)
         {
             ItemTooltip.Hide();
+            if(label=="Menu"){SetMenuOpen(true);return;}
             if (label == "Character")
             {
                 foreach (var window in _windows.Values) window.SetOpen(false);
@@ -725,7 +646,6 @@ namespace Roi.UI
             {
                 _lastScreen = now;
                 foreach (var kv in _windows) if (kv.Value.IsOpen) kv.Value.SetOpen(true);
-                if (_menuPanel.gameObject.activeSelf) SetMenuOpen(true);
             }
 
             if(UiInputFocus.Typing||UiInputFocus.Modal)return;
@@ -743,7 +663,7 @@ namespace Roi.UI
                 // System menu open -> close it. Any window open -> close windows. Nothing open ->
                 // open the system menu.
                 if (_sysRoot.gameObject.activeSelf) _sysRoot.gameObject.SetActive(false);
-                else if (AnyWindowOpen() || _menuPanel.gameObject.activeSelf) { SetMenuOpen(false); CloseAll(); }
+                else if (AnyWindowOpen()) { SetMenuOpen(false); CloseAll(); }
                 else _sysRoot.gameObject.SetActive(true);
                 return;
             }
@@ -777,41 +697,6 @@ namespace Roi.UI
                 if (k[e.Key].wasPressedThisFrame) { Toggle(e.Label); return; }
             }
 
-            // A click outside the open menu dismisses it. Clicks on the menu or the Menu button
-            // itself are the Buttons' own and must fall through.
-            var m = Mouse.current;
-            if (m != null && m.leftButton.wasPressedThisFrame && _menuPanel.gameObject.activeSelf)
-            {
-                var p = m.position.ReadValue();
-                if (!Inside(_menuPanel, p) && !Inside(_menuBtn.GetComponent<RectTransform>(), p))
-                    SetMenuOpen(false);
-            }
-        }
-
-        static bool Inside(RectTransform rt, Vector2 screen)
-            => RectTransformUtility.RectangleContainsScreenPoint(rt, screen, null);
-
-        static Button MakeMenuNavigation(Transform parent,string label,string hotkey,float w,float h,System.Action click,bool tab=false)
-        {
-            var image=UiTheme.Flat(parent,"Menu_"+label,Color.white);
-            image.rectTransform.sizeDelta=new Vector2(w,h);
-            var button=image.gameObject.AddComponent<MenuNavigationButton>();
-            button.targetGraphic=image;button.IsTab=tab;
-            button.navigation=new Navigation{mode=Navigation.Mode.None};
-            button.onClick.AddListener(()=>click?.Invoke());
-            var text=UiTheme.Label(image.transform,"Label",label,tab?13:14,UiTheme.TextHigh,tab?TextAlignmentOptions.Center:TextAlignmentOptions.Left);
-            text.enableAutoSizing=true;text.fontSizeMin=11;text.fontSizeMax=tab?13:14;
-            var tr=text.rectTransform;tr.anchorMin=Vector2.zero;tr.anchorMax=Vector2.one;tr.offsetMin=new Vector2(tab?6:39,0);tr.offsetMax=new Vector2(tab?-6:-28,0);
-            button.Caption=text;
-            if(!string.IsNullOrEmpty(hotkey)) {
-                var key=UiTheme.Label(image.transform,"Key",hotkey,10,UiTheme.TextLow,TextAlignmentOptions.Right);
-                var kr=key.rectTransform;kr.anchorMin=Vector2.zero;kr.anchorMax=Vector2.one;kr.offsetMin=new Vector2(0,0);kr.offsetMax=new Vector2(-12,0);
-            }
-            var mark=UiTheme.Flat(image.transform,"ActiveMark",UiTheme.Accent);mark.raycastTarget=false;
-            var mr=mark.rectTransform;mr.anchorMin=mr.anchorMax=tab?new Vector2(.5f,0):new Vector2(0,.5f);
-            mr.sizeDelta=tab?new Vector2(w-24,2):new Vector2(2,22);mr.anchoredPosition=tab?new Vector2(0,0):new Vector2(2,0);
-            button.AccentMark=mark;button.SetActiveState(false);
-            return button;
         }
 
         // --- widgets ---------------------------------------------------------------------------
@@ -838,9 +723,11 @@ namespace Roi.UI
 
             bool keyed = !string.IsNullOrEmpty(hotkey);
             var t = UiTheme.Label(rt, "Label", label, UiTheme.HeadSize,
-                                  primary?UiTheme.Accent:UiTheme.TextHigh, TextAlignmentOptions.Center);
-            
-            if(primary && h>=36) UiTheme.Display(t);
+                                  primary?UiTheme.OnAccent:UiTheme.TextHigh, TextAlignmentOptions.Center);
+            if(primary) {
+                go.AddComponent<UiPrimaryAction>();
+                if(h>=36) UiTheme.Display(t);
+            }
             t.enableAutoSizing=true;t.fontSizeMin=13;t.fontSizeMax=UiTheme.HeadSize;
             var tr = t.rectTransform;
             tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one;
@@ -868,7 +755,8 @@ namespace Roi.UI
                                                System.Action onClick, float size = UiTheme.HeadSize)
         {
             var img = UiTheme.Box(parent, "Ghost_" + label, Color.white);
-            if(w>=70)UiTheme.Border(img.rectTransform,UiTheme.Line);
+            img.sprite = UiTheme.CutFill(4);
+            if(w>=70){var edge=UiTheme.Border(img.rectTransform,UiTheme.LineStrong);edge.sprite=UiTheme.CutFrame(4);}
             var btn = img.gameObject.AddComponent<UiStateButton>();
             btn.targetGraphic = img;
             btn.navigation = new Navigation { mode = Navigation.Mode.None };

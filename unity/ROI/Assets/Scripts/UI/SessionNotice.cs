@@ -101,38 +101,44 @@ namespace Roi.UI
             var pr = panel.rectTransform;
             pr.anchorMin = pr.anchorMax = new Vector2(0.5f, 0.5f);
             pr.pivot = new Vector2(0.5f, 0.5f);
-            pr.sizeDelta = new Vector2(460f, 250f);
+            pr.sizeDelta = new Vector2(480f, 232f);
 
-            var h = UiTheme.Caps(pr, "Head", heading, UiTheme.TitleSize,
-                                 new Color(0.95f, 0.45f, 0.40f), TextAlignmentOptions.Center);
+            var h = UiTheme.Label(pr, "SessionHeading", heading, 28f,
+                                 new Color(0.95f, 0.45f, 0.40f), TextAlignmentOptions.MidlineLeft);
             var hr = h.rectTransform;
             hr.anchorMin = new Vector2(0f, 1f); hr.anchorMax = new Vector2(1f, 1f);
             hr.pivot = new Vector2(0.5f, 1f);
-            hr.sizeDelta = new Vector2(0f, 32f);
-            hr.anchoredPosition = new Vector2(0f, -UiTheme.PadLarge);
+            hr.sizeDelta = new Vector2(-48f, 40f);
+            hr.anchoredPosition = new Vector2(0f, -24f);
 
-            var b = UiTheme.Label(pr, "Body", body, UiTheme.BodySize, UiTheme.TextMid,
-                                  TextAlignmentOptions.Top);
+            var b = UiTheme.Label(pr, "Body", body, 16f, UiTheme.TextMid,
+                                  TextAlignmentOptions.TopLeft);
             b.textWrappingMode = TextWrappingModes.Normal;
             var br = b.rectTransform;
             br.anchorMin = new Vector2(0f, 1f); br.anchorMax = new Vector2(1f, 1f);
             br.pivot = new Vector2(0.5f, 1f);
             br.offsetMin = new Vector2(UiTheme.PadLarge, 0f);
             br.offsetMax = new Vector2(-UiTheme.PadLarge, 0f);
-            br.sizeDelta = new Vector2(br.sizeDelta.x, 72f);
-            br.anchoredPosition = new Vector2(0f, -(UiTheme.PadLarge + 38f));
+            float bodyHeight=Mathf.Max(48f,b.GetPreferredValues(body,432f,0f).y+4f);
+            br.sizeDelta = new Vector2(-48f, bodyHeight);
+            br.anchoredPosition = new Vector2(0f, -76f);
+            float actionY=76f+bodyHeight+18f+22f;
+            pr.sizeDelta=new Vector2(480f,actionY+22f+24f);
 
-            float bw = onReturn != null ? 190f : 260f;
-            float x = onReturn != null ? -(bw + UiTheme.Gap) / 2f : 0f;
+            float bw = onReturn != null ? 210f : 260f;
+            float x = onReturn != null ? -(bw + 12f) / 2f : 0f;
             if (onReturn != null)
             {
                 var back = HudBar.MakeButton(pr, Loc.Get("UI_SESSION_NOTICE_BACK_TO_THE_LOGIN"), "", bw, UiLayout.Touch,
                                              () => { _modal = null; onReturn(); Destroy(gameObject); });
-                Centre(back, x, -(UiTheme.PadLarge + 130f));
-                x += bw + UiTheme.Gap;
+                Centre(back, x, -actionY);
+                x += bw + 12f;
             }
+            var close=DialogSurface.CloseIcon(pr,()=>{if(onReturn==null)return;_modal=null;onReturn();Destroy(gameObject);});
+            close.interactable=onReturn!=null;
+            h.margin=new Vector4(0,0,36,0);
             var quit = HudBar.MakeGhostButton(pr, Loc.Get("UI_COMMON_QUIT"), bw, UiLayout.Touch, Quit);
-            Centre(quit, x, -(UiTheme.PadLarge + 130f));
+            Centre(quit, x, -actionY);
         }
 
         static void Centre(Button b, float x, float y)

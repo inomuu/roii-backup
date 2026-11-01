@@ -84,7 +84,10 @@ namespace Roi.UI
                 if (depth != 0 || (c != ',' && i != json.Length - 1)) continue;
                 string field = json.Substring(start, i - start).Trim(); start = i + 1;
                 if (!field.StartsWith("\"slot\":", StringComparison.Ordinal)
-                    && !field.StartsWith("\"equip_slot\":", StringComparison.Ordinal)) fields.Add(field);
+                    && !field.StartsWith("\"equip_slot\":", StringComparison.Ordinal)
+                    // The host adds this recipient-dependent presentation flag only to worn
+                    // items (view_state.rs). It is not part of the original item's identity.
+                    && !field.StartsWith("\"off_family\":", StringComparison.Ordinal)) fields.Add(field);
             }
             return quoted || depth != 0 ? "" : string.Join(",", fields);
         }

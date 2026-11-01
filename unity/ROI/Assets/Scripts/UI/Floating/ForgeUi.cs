@@ -37,6 +37,12 @@ namespace Roi.UI
             =>Text(p,key,Loc.Get(key),x,y,w,h,size,color);
         public static Button Button(Transform p,string key,float x,float y,float w,float h,Action onClick, bool accent=false)
         {
+          if(key=="UI_FLOAT_CLOSE") {
+            var close=DialogSurface.CloseIcon(p,onClick,Ink);
+            Place((RectTransform)close.transform,x,y,w,h);
+            close.GetComponentInChildren<TitleGlyph>().rectTransform.sizeDelta=new Vector2(Mathf.Min(28,w),Mathf.Min(28,h));
+            return close;
+          }
           var im=CodexButtonImage.Create(p,key,accent); Place(im.rectTransform,x,y,w,h);
           var b=im.gameObject.AddComponent<UiStateButton>();b.targetGraphic=im;b.onClick.AddListener(()=>onClick?.Invoke());
           b.navigation=new Navigation{mode=Navigation.Mode.None};

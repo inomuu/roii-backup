@@ -136,6 +136,8 @@ namespace Roi.Story
             _choicesRoot.anchorMin = new Vector2(0f, 0f); _choicesRoot.anchorMax = new Vector2(1f, 0f);
             _choicesRoot.pivot = new Vector2(0.5f, 0f);
             _choicesRoot.sizeDelta = new Vector2(0f, 0f);
+            Roi.UI.DialogSurface.CloseIcon(_panel,Clear);
+            _speaker.margin=new Vector4(0,0,48,0);
         }
 
         // --- the public surface ------------------------------------------------------------

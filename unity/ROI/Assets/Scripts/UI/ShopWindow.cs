@@ -53,7 +53,7 @@ namespace Roi.UI
             var header=body.parent.Find("TitleBar");
             var wallet=UiTheme.Box(header,"ShopWallet",new Color(.025f,.045f,.045f,.8f));
             var wr=wallet.rectTransform;wr.anchorMin=wr.anchorMax=new Vector2(1,.5f);wr.pivot=new Vector2(1,.5f);
-            wr.sizeDelta=new Vector2(220,36);wr.anchoredPosition=new Vector2(-24,0);
+            wr.sizeDelta=new Vector2(220,36);wr.anchoredPosition=new Vector2(-72,0);
             var iconGo=new GameObject("GilIcon",typeof(RectTransform),typeof(HomeCurrencyIcon));iconGo.transform.SetParent(wr,false);
             var icon=iconGo.GetComponent<HomeCurrencyIcon>();icon.Kind="Gil";icon.color=Color.white;icon.raycastTarget=false;
             var ir=icon.rectTransform;ir.anchorMin=ir.anchorMax=new Vector2(0,.5f);ir.pivot=new Vector2(0,.5f);ir.sizeDelta=new Vector2(28,28);ir.anchoredPosition=new Vector2(10,0);
@@ -143,8 +143,9 @@ namespace Roi.UI
             if(changed){_selectedItem=null;_purchase.interactable=false;_preview.text=Loc.Get("UI_COLLECTION_SELECT");_previewArt.enabled=_previewPicture.enabled=false;}
             _tab = tab;
             Rebuild();
-            if(changed)UiPageTransition.Play(_content.GetComponentInParent<UnityEngine.UI.ScrollRect>().viewport);
-            var scroll = _content.GetComponentInParent<UnityEngine.UI.ScrollRect>();
+
+            var scroll = _content.GetComponentInParent<UnityEngine.UI.ScrollRect>(true);
+            if(changed && scroll!=null)UiPageTransition.Play(scroll.viewport);
             if (scroll != null) scroll.verticalNormalizedPosition = 1f;
         }
 
@@ -255,13 +256,14 @@ namespace Roi.UI
 
             if (shown == 0)
             {
-                int next=-1;for(int i=0;i<Tabs.Length;i++)if(i!=_tab&&System.Array.Exists(_rows,item=>TabOf(item)==i)){next=i;break;}
-                int destination=next;
-                var none=MenuNotice.Create(_content,"Shop",GameText.ScreenName("Shop"),Loc.Get("UI_SHOP_NOTHING_IN_THIS_CATEGORY"),
-                    destination>=0?(System.Action)(()=>Select(destination)):null,Loc.Get("UI_UX_BROWSE_ITEMS"));
+                var none=MenuNotice.Create((RectTransform)transform,"Shop",GameText.ScreenName("Shop"),Loc.Get("UI_SHOP_NOTHING_IN_THIS_CATEGORY"),iconSize:96);
+                MenuNotice.Center(none);
                 _built.Add(none);
                 y=300f;
             }
+            transform.Find("PreviewArt").gameObject.SetActive(shown > 0);
+            _purchase.gameObject.SetActive(shown > 0);
+            _preview.gameObject.SetActive(shown > 0);
             UiScroll.Fit(_content, y + UiTheme.Pad);
         }
 

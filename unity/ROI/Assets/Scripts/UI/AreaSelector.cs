@@ -20,12 +20,12 @@ namespace Roi.UI
 {
     public sealed class AreaSelector : MonoBehaviour
     {
-        const float BoxW = 328f, BoxH = 54f, Margin = 12f;
+        const float BoxW = 400f, BoxH = 64f, Margin = 12f;
         // The map button carries the SCREEN'S OWN NAME rather than a glyph. `☷` came out as a
         // tofu box: Noto Sans has the arrows but not the trigram, and a missing glyph is silent —
         // it just draws an empty square. `GameText.ScreenName` is the same source the menu's own
         // button uses, so the two always read the same.
-        const float ArrowW = 30f, MapW = 68f, Pad = 6f;
+        const float ArrowW = 48f, MapW = 80f, Pad = 6f;
 
         RectTransform _root;
         TextMeshProUGUI _name, _sub;
@@ -60,7 +60,7 @@ namespace Roi.UI
             _root.anchorMin = _root.anchorMax = new Vector2(1f, 1f);
             _root.pivot = new Vector2(1f, 1f);
             _root.sizeDelta = new Vector2(BoxW, BoxH);
-            _root.anchoredPosition = new Vector2(-Margin, -Margin);
+            _root.anchoredPosition = new Vector2(-Margin, -100f);
 
             _prev = HudBar.MakeButton(_root, "‹", "", ArrowW, BoxH - Pad * 2f, () => Step(-1));
             Place(_prev, Pad, 0f);

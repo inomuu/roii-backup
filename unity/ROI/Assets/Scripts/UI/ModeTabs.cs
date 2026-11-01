@@ -6,7 +6,7 @@ namespace Roi.UI
 {
     // Godot mode_tabs.gd: navigation owns visibility/input, never the session clock.
     // The Home layout is presentation only. The combat scene stays alive.
-    public sealed class ModeTabs : MonoBehaviour
+    public sealed partial class ModeTabs : MonoBehaviour
     {
         public bool IsCombat { get; private set; } = true;
         public event Action<bool> ModeChanged;
@@ -14,8 +14,7 @@ namespace Roi.UI
         GameObject _menu;
         ExemplarScreen _exemplars;
         Button _switchButton;
-        HomeIcon _switchIcon;
-        TMPro.TextMeshProUGUI _switchLabel;
+        bool _returnToCombat;
 
         public static ModeTabs Create(Transform parent)
         {
@@ -36,42 +35,29 @@ namespace Roi.UI
 
         void Build()
         {
-            var blank = UiTheme.Box(transform, "MenuPage", new Color(0.055f, 0.06f, 0.075f, 1f));
-            var rt = blank.rectTransform;
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            blank.raycastTarget = false; // Perspective card raycasts must reach their own camera.
-            _menu = blank.gameObject;
-            HomeMenuLayout.Build(blank.transform, id => { if(id=="Exemplars") OpenExemplars(); else OpenRequested?.Invoke(id); });
-            _menu.SetActive(false);
-
-            var strip = UiTheme.Box(transform, "Tabs", UiTheme.Panel);
-            var navCanvas=strip.gameObject.AddComponent<Canvas>();
-            navCanvas.overrideSorting=true; navCanvas.sortingOrder=49;
-            strip.gameObject.AddComponent<GraphicRaycaster>();
-            rt = strip.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(1f, 1);
-            rt.pivot = new Vector2(1f, 1);
-            rt.sizeDelta = new Vector2(190, 58);
-            rt.anchoredPosition = new Vector2(-16, -12);
-            _switchButton = HudBar.MakeButton(rt, "", "", 184, 52, () => Select(!IsCombat));
-            _switchLabel = _switchButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-            _switchButton.name="ModeSwitch";
-            var font=UiTheme.Font;
-            if(font!=null){_switchLabel.font=font;_switchLabel.fontSharedMaterial=font.material;}
-            _switchLabel.fontSize=27;
-            _switchLabel.alignment=TMPro.TextAlignmentOptions.CaplineLeft;
-            _switchLabel.rectTransform.offsetMin=new Vector2(43,0);
-            _switchLabel.rectTransform.offsetMax=new Vector2(-10,0);
-            var iconGo=new GameObject("ModeIcon",typeof(RectTransform),typeof(HomeIcon));
-            iconGo.transform.SetParent(_switchButton.transform,false);
-            _switchIcon=iconGo.GetComponent<HomeIcon>();_switchIcon.raycastTarget=false;_switchIcon.color=new Color(.94f,.92f,.87f);
-            var ir=_switchIcon.rectTransform;ir.anchorMin=ir.anchorMax=new Vector2(0,.5f);
-            ir.pivot=new Vector2(0,.5f);ir.anchoredPosition=new Vector2(12,0);ir.sizeDelta=new Vector2(26,26);
-            Place(_switchButton, 0);
-            Paint();
+            BuildCombatMenu();
+            var strip=UiTheme.Flat(transform,"QuickNavigation",Color.clear);strip.raycastTarget=false;
+            var rt=strip.rectTransform;rt.anchorMin=rt.anchorMax=rt.pivot=Vector2.one;
+            rt.sizeDelta=new Vector2(576,86);rt.anchoredPosition=new Vector2(-16,-8);
+            string[] ids={"Daily","Party","Inventory","Map","Mail","Options","Menu"};
+            for(int i=0;i<ids.Length;i++){
+                string id=ids[i];var button=HudBar.MakeGhostButton(rt,"",72,72,()=>{if(id=="Menu")ToggleCombatMenu();else NavigateCombat(id);});button.name="Open_"+id;if(id=="Menu")_switchButton=button;
+                var br=(RectTransform)button.transform;br.anchorMin=br.anchorMax=br.pivot=new Vector2(0,1);br.anchoredPosition=new Vector2(i*84,0);
+                button.GetComponent<Image>().color=new Color(.035f,.065f,.075f,.6f);
+                button.GetComponent<Image>().sprite=UiTheme.Fill(16);button.GetComponent<Image>().type=Image.Type.Sliced;
+                var go=new GameObject("Icon",typeof(RectTransform));go.transform.SetParent(button.transform,false);
+                var icon=go.AddComponent<HomeIcon>();icon.Kind=id=="Menu"?"Story":id;icon.color=UiTheme.TextHigh;icon.raycastTarget=false;icon.rectTransform.sizeDelta=new Vector2(42,42);
+            }
         }
 
+        void Update()
+        {
+            var strip=transform.Find("QuickNavigation");if(strip==null)return;
+            bool open=false;foreach(var window in UnityEngine.Object.FindObjectsByType<UiWindow>(FindObjectsSortMode.None))if(window.IsOpen){open=true;break;}
+            strip.gameObject.SetActive(!open && IsCombat && (_exemplars==null||!_exemplars.gameObject.activeSelf));
+            if(open && _menu.activeSelf)_menu.SetActive(false);
+            if(UnityEngine.InputSystem.Keyboard.current?.escapeKey.wasPressedThisFrame==true && _menu.activeSelf)_menu.SetActive(false);
+        }
         static void Place(Button b, float x)
         {
             var rt = (RectTransform)b.transform;
@@ -81,10 +67,9 @@ namespace Roi.UI
 
         public void Select(bool combat)
         {
-            if (IsCombat == combat || UiConfirm.BlocksNavigation) return;
-            IsCombat = combat;
-            // Close camera-owning combat widgets before the Home portrait takes ownership.
-            ModeChanged?.Invoke(combat);
+            if(UiConfirm.BlocksNavigation)return;
+            // Home is now an overlay on the battle scene; simulation and HUD stay in combat.
+            IsCombat=true;
             if(_exemplars!=null)_exemplars.gameObject.SetActive(false);
             _menu.SetActive(!combat);
             Paint();
@@ -93,7 +78,8 @@ namespace Roi.UI
         public void OpenExemplars()
         {
             if(UiConfirm.BlocksNavigation)return;
-            if(IsCombat)Select(false);
+            _returnToCombat=IsCombat;
+
             _menu.SetActive(false);
             if(_exemplars==null)_exemplars=ExemplarScreen.Create(transform,ReturnHome);
             _exemplars.gameObject.SetActive(true);
@@ -103,7 +89,7 @@ namespace Roi.UI
         void ReturnHome()
         {
             if(_exemplars!=null)_exemplars.gameObject.SetActive(false);
-            _menu.SetActive(true);
+            Select(true);
             Paint();
         }
         public bool BackFromExemplars()
@@ -118,14 +104,11 @@ namespace Roi.UI
             // A transient item browser owns outside clicks; leave this button visible but let
             // its first click reach the browser's dismiss scrim instead of switching modes.
             if(_switchButton!=null)
-                _switchButton.transform.parent.GetComponent<GraphicRaycaster>().enabled=enabled;
+                _switchButton.interactable=enabled;
         }
         void Paint()
         {
-            // Home owns the battle action; do not overlay a duplicate on its wallet.
-            _switchButton.transform.parent.gameObject.SetActive(IsCombat || !_menu.activeSelf);
-            _switchIcon.Kind=IsCombat?"Story":"Combat";_switchIcon.SetVerticesDirty();
-            _switchLabel.text = Loc.Get(IsCombat ? "UI_COMMON_MENU" : "UI_STAT_SEC_COMBAT");
+            Update();
         }
     }
 }

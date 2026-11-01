@@ -59,6 +59,7 @@ namespace Roi.UI
         const float NameSize = 12f, NameSizeSmall = 10f;
         TextMeshProUGUI _name, _mid, _stat, _rarityLabel;
         ExemplarEquipmentIcon _art;
+        WuwaGradient _glow;
 
         void Build()
         {
@@ -66,6 +67,7 @@ namespace Roi.UI
             _rt.sizeDelta = new Vector2(SlotW, SlotH);
 
             _bg = UiTheme.Box(transform, "Bg", EmptyFill, 4);
+            _bg.sprite = UiTheme.ItemCardFill; // WuWa idiom: chamfered cell, not rounded
             Stretch(_bg.rectTransform);
             // TAP-SELECT, not drag (2026-09-07, the no-drag rule): the fill IS the hit target, so a
             // whole cell is a 96x104 touch target rather than a small icon inside one. Only screens
@@ -78,6 +80,11 @@ namespace Roi.UI
             // The border is a 9-sliced ring drawn OVER the fill — one image, one draw, and it does
             // not dim with the fill the way a tinted parent would.
             _border = UiTheme.Border(_rt, UiTheme.Line, 4);
+            _border.sprite = UiTheme.ItemCardFrame; // matches the chamfered Bg above
+            // WuWa rarity glow: the item's tier rises as light from the foot of the cell.
+            _glow = WuwaGradient.Add(transform, Color.clear, Color.clear, false);
+            _glow.transform.SetSiblingIndex(_bg.transform.GetSiblingIndex() + 1);
+            _glow.rectTransform.offsetMin = new Vector2(1f, 1f); _glow.rectTransform.offsetMax = new Vector2(-1f, -1f);
 
             // Bound: a small square in the top-right corner. The Godot original draws a wedge; a
             // wedge needs its own sprite here and says exactly as much as a dot does.
@@ -259,6 +266,7 @@ namespace Roi.UI
             if (!has)
             {
                 _bg.color = EmptyFill;
+                _glow.Set(Color.clear, Color.clear);
                 _restBorder = UiTheme.Line;
                 _border.color = _selected ? UiTheme.Accent : _restBorder;
                 _name.text = _mid.text = _stat.text = "";
@@ -267,6 +275,7 @@ namespace Roi.UI
             }
             _bg.color = UiTheme.Surface;
             var col = ItemColor(item);
+            _glow.Set(new Color(col.r, col.g, col.b, 0f), new Color(col.r, col.g, col.b, .38f));
             // The rarity is the border, held back to a hairline's weight. At full strength, a bag
             // of commons became a grid of grey boxes competing with the names inside them.
             _restBorder = new Color(col.r, col.g, col.b, 0.55f);

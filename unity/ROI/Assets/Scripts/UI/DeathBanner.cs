@@ -72,6 +72,7 @@ namespace Roi.UI
             cr.offsetMin = Vector2.zero; cr.offsetMax = Vector2.zero;
             _count.raycastTarget = false;
 
+            DialogSurface.CloseIcon(br,()=>_box.gameObject.SetActive(false));
             gameObject.SetActive(false);
         }
 
@@ -111,6 +112,7 @@ namespace Roi.UI
 
             if (_deadSince < 0f)
             {
+                _box.gameObject.SetActive(true);
                 _deadSince = Time.unscaledTime;
                 // Read ONCE, on the edge. A dungeon summary that appears later must not silently
                 // take over a countdown already running, and one that is up now must own it for the

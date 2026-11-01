@@ -19,7 +19,6 @@ namespace Roi.UI
         string _membership = "";
         float _next, _layoutWidth = -1f;
         static Texture2D _seraphineArt;
-        static Sprite _disc;
 
 #if UNITY_EDITOR
         int _previewCount;
@@ -154,8 +153,11 @@ namespace Roi.UI
                 m.Crest.raycastTarget = false;
                 Place((RectTransform)emblem.transform, 99, 62, 50, 50);
 
-                Circle(rt, "SlotRim", new Color(.70f, .64f, .44f, .85f), 140, 105, 25);
-                Circle(rt, "SlotBackground", new Color(.025f, .035f, .045f, .98f), 141, 106, 23);
+                // WuWa idiom: the slot number sits in a chamfered plate, not a gold coin medallion —
+                // the cut corner is this UI's one shape language, and a circular medallion is the
+                // generic fantasy-mobile frame already rejected elsewhere (design-system MASTER.md).
+                Badge(rt, "SlotRim", UiTheme.Accent, 140, 105, 25);
+                Badge(rt, "SlotBackground", UiTheme.Panel, 141, 106, 23);
                 var slot = UiTheme.Label(rt, "Slot", (i + 1).ToString(), 16,
                                         new Color(.96f, .90f, .68f), TextAlignmentOptions.Center);
                 Place(slot.rectTransform, 141, 106, 23, 23);
@@ -220,29 +222,14 @@ namespace Roi.UI
             return image;
         }
 
-        static Image Circle(Transform parent, string name, Color color, float x, float y, float size)
+        // WuWa idiom: the slot badge is the same chamfered plate as a card fill, 9-sliced so the
+        // corner cut stays crisp at any size instead of a per-pixel circular alpha falloff.
+        static Image Badge(Transform parent, string name, Color color, float x, float y, float size)
         {
             var image = Flat(parent, name, color, x, y, size, size);
-            image.sprite = Disc();
+            image.sprite = UiTheme.CutFill(8);
+            image.type = Image.Type.Sliced;
             return image;
-        }
-
-        static Sprite Disc()
-        {
-            if (_disc != null) return _disc;
-            const int size = 128;
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
-            { name = "Combat HUD disc", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
-            var pixels = new Color[size * size];
-            for (int y = 0; y < size; y++)
-                for (int x = 0; x < size; x++)
-                {
-                    float r = Vector2.Distance(new Vector2(x + .5f, y + .5f), new Vector2(size * .5f, size * .5f));
-                    pixels[y * size + x] = new Color(1, 1, 1, Mathf.Clamp01(size * .5f - r));
-                }
-            tex.SetPixels(pixels); tex.Apply(false, true);
-            _disc = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(.5f, .5f));
-            return _disc;
         }
 
         void AnimateBars()

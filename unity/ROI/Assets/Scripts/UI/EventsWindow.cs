@@ -136,13 +136,14 @@ namespace Roi.UI
                 {
                     bool ready = c.state == "claimable";
                     bool got = c.state == "claimed";
-                    var row=UiTheme.Box(_content,$"C_{t.track}_{c.id}",new Color(.70f,.74f,.74f,.95f));
-                    UiTheme.Border(row.rectTransform,new Color(.85f,.9f,.89f,.4f));
+                    var row=UiTheme.Box(_content,$"C_{t.track}_{c.id}",UiTheme.Surface);
+                    row.sprite=UiTheme.CutFill(8);
+                    UiTheme.Border(row.rectTransform,UiTheme.Line);
                     Place(row.rectTransform,y,CellH);_built.Add(row.gameObject);
                     PeriodWindow.RewardArt(row.transform,.015f,.08f,.105f,.92f);
-                    var what=ExemplarUi.Text(row.transform,"Rewards",Rewards(c.reward),.16f,.40f,.83f,.90f,UiTheme.BodySize,new Color(.07f,.12f,.13f));
+                    var what=ExemplarUi.Text(row.transform,"Rewards",Rewards(c.reward),.16f,.40f,.83f,.90f,UiTheme.BodySize,UiTheme.TextHigh);
                     what.fontStyle=FontStyles.Bold;what.enableAutoSizing=true;what.fontSizeMin=12;what.fontSizeMax=UiTheme.BodySize;
-                    ExemplarUi.Text(row.transform,"Day",$"Day {c.at}",.16f,.08f,.83f,.38f,UiTheme.CaptionSize,new Color(.16f,.23f,.24f));
+                    ExemplarUi.Text(row.transform,"Day",$"Day {c.at}",.16f,.08f,.83f,.38f,UiTheme.CaptionSize,UiTheme.TextLow);
                     ActivityStatus.Add(row.transform,.87f,.15f,.97f,.85f,got,ready);
                     y += CellH + Gap;
                 }

@@ -19,6 +19,12 @@ public static class UiGalleryProbe
         Application.runInBackground=true; EditorApplication.isPaused=false;
         var view=EditorWindow.GetWindow(Type.GetType("UnityEditor.GameView,UnityEditor"));view.Show();view.Focus();
     }
+    public static void CompletePages20261101() => Run("complete-pages-20261101");
+    // WuWa restyle pass (2026-11-01): home + terminal, every window, system screens, dialogs.
+    public static void WuwaHome() => Run("tactical-114-wuwa");
+    public static void WuwaPages() => Run("wuwa-200");
+    public static void WuwaSystem() => Run("system-all-86-wuwa");
+    public static void WuwaDialogs() => Run("dialogs-all-86-wuwa");
     static string _label;
     static bool _optionsEnabled;
     static EnterPlayModeOptions _options;
@@ -137,6 +143,40 @@ public static class UiGalleryProbe
     public static void Portrait84ContentCompact() => Run("ui-spacing-64-portrait-84-compact");
     public static void Attributes85() => Run("management-dock-59-attributes-85");
     public static void Attributes85Compact() => Run("management-dock-59-attributes-85-compact");
+    public static void Notice121() => Run("online-all-86-notice119-center121");
+    public static void Notice121Compact() => Run("online-all-86-notice119-center121-compact");
+    public static void Notice120() => Run("online-all-86-notice119-center120");
+    public static void Notice120Compact() => Run("online-all-86-notice119-center120-compact");
+    public static void Notice119() => Run("online-all-86-notice119");
+    public static void Notice119Compact() => Run("online-all-86-notice119-compact");
+    public static void Refresh117Core() => Run("ui-spacing-64-all-86-refresh117");
+    public static void Refresh117Online() => Run("online-all-86-refresh117");
+    public static void Refresh117System() => Run("system-all-86-refresh117");
+    public static void Refresh117Dialogs() => Run("dialogs-all-86-refresh117");
+    public static void Refresh117More() => Run("more-dialogs-all-86-refresh117");
+    public static void Refresh117Review() => Run("review-113-refresh117");
+    public static void Refresh117Home() => Run("tactical-114-refresh117");
+    public static void Refresh117Spacing() => Run("spacing-115-refresh117");
+    public static void CloseAllCore() => Run("ui-spacing-64-all-86-close-all");
+    public static void CloseAllOnline() => Run("online-all-86-close-all");
+    public static void CloseAllSystem() => Run("system-all-86-close-all");
+    public static void CloseAllDialogs() => Run("dialogs-all-86-close-all");
+    public static void CloseAllMore() => Run("more-dialogs-all-86-close-all");
+    public static void CloseAllReview() => Run("review-113-close-all");
+    public static void CloseAllHome() => Run("tactical-114-close-all");
+    public static void CloseAllSpacing() => Run("spacing-115-close-all");
+    public static void CloseAllChecks() => Run("close-checks-close-all");
+    public static void CloseAllStory() => Run("close-story-close-all");
+    public static void CloseAllCompact() => Run("close-checks-close-all-compact");
+    public static void Fusion123() => Run("fusion-123");
+    public static void Forge118() => Run("forge-118");
+    public static void Spacing115() => Run("spacing-115");
+    public static void Spacing115Compact() => Run("spacing-115-compact");
+    public static void Tactical114() => Run("tactical-114");
+    public static void Tactical114Compact() => Run("tactical-114-compact");
+    public static void Review113() => Run("review-113");
+    public static void Review113Compact() => Run("review-113-compact");
+    public static void Review113Mobile() => Run("review-113-mobile");
     public static void All86() => Run("ui-spacing-64-all-86");
     public static void Dialogs94() => Run("dialogs-all-86-94");
     public static void Dialogs94Compact() => Run("dialogs-all-86-94-compact");
@@ -282,6 +322,7 @@ public static class UiGalleryProbe
         var view = EditorWindow.GetWindow(Type.GetType("UnityEditor.GameView,UnityEditor"));
         view.Show(); view.Focus();
         PlayModeWindow.SetCustomRenderingResolution(_label.Contains("compact")?1024u:1440u,_label.Contains("compact")?768u:(_label.StartsWith("excavation")?810u:900u),"UI gallery");
+        if(_label=="tactical-114")PlayModeWindow.SetCustomRenderingResolution(1472,828,"Reference landscape");
         if(_label.EndsWith("-mobile"))PlayModeWindow.SetCustomRenderingResolution(844,390,"Mobile landscape");
         var host = new GameObject("UI gallery fixture");
         var camera = new GameObject("Gallery background",typeof(Camera)).GetComponent<Camera>();
@@ -320,9 +361,17 @@ public sealed partial class UiGalleryRunner : MonoBehaviour
         UnityEngine.InputSystem.InputSystem.settings=_fixtureInputSettings;
         _output = Path.GetFullPath(Path.Combine(Application.dataPath,"../../../../ui-gallery",label));
         Directory.CreateDirectory(_output);
+        if(label=="complete-pages-20261101"){StartCoroutine(CompletePages20261101Drive());return;}
         File.WriteAllText(Path.Combine(_output,"errors.txt"),"");
         File.WriteAllText(Path.Combine(_output,"result.txt"),"Running; not yet completed.");
         Application.logMessageReceived += Log;
+        if(label.StartsWith("close-story")){StartCoroutine(CloseStoryDrive());return;}
+        if(label.StartsWith("close-checks")){StartCoroutine(CloseAllChecksDrive());return;}
+        if(label=="fusion-123"){StartCoroutine(Fusion123Drive());return;}
+        if(label=="forge-118"){StartCoroutine(Forge118Drive());return;}
+        if(label.StartsWith("spacing-115")){StartCoroutine(Spacing115Drive());return;}
+        if(label.StartsWith("tactical-114")){StartCoroutine(Tactical114Drive());return;}
+        if(label.StartsWith("review-113")){StartCoroutine(Review113Drive());return;}
         if(label.StartsWith("inventory-restored-104")){StartCoroutine(InventoryRestored104Drive());return;}
         if(label.StartsWith("inventory-103")){StartCoroutine(InventoryRestored104Drive());return;}
         if(label.StartsWith("home-101")){StartCoroutine(Home101Drive());return;}
@@ -353,6 +402,13 @@ public sealed partial class UiGalleryRunner : MonoBehaviour
         Canvas.ForceUpdateCanvases();
         yield return new WaitForEndOfFrame();
         if(_output.Contains("56")||_output.Contains("58")||_output.Contains("59")||_output.Contains("60")||_output.Contains("61")||_output.Contains("62")||_output.Contains("63")||_output.Contains("64")||_output.Contains("65")||_output.Contains("67")||_output.Contains("68")||_output.Contains("69")||_output.Contains("70")||_output.Contains("71")||_output.Contains("72")||_output.Contains("73")||_output.Contains("81")||_output.Contains("82")||_output.Contains("83")||_output.Contains("84")||_output.Contains("85")||_output.Contains("86"))DumpTypography(name);
+        if(_output.Contains("close-all"))foreach(var style in UnityEngine.Object.FindObjectsByType<NoticeDialogStyle>(FindObjectsSortMode.None)) {
+            if(!style.isActiveAndEnabled)continue;
+            bool hasClose=false;
+            foreach(var button in style.GetComponentsInChildren<Button>())
+                if(button.name=="Close"&&button.GetComponentInChildren<TitleGlyph>()!=null)hasClose=true;
+            if(!hasClose)Debug.LogError("DIALOG CLOSE MISSING: "+name+" / "+style.name);
+        }
         ScreenCapture.CaptureScreenshot(Path.Combine(_output,name+".png"));
         yield return null; yield return null;
         _shots++;
@@ -1312,10 +1368,8 @@ public sealed partial class UiGalleryRunner : MonoBehaviour
     {
         var bar = HudBar.Create(transform);
         yield return null;
-        var menu=(Button)typeof(HudBar).GetField("_menuBtn",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(bar);
-        menu.onClick.Invoke();
-        yield return Shot("System-menu");
-        menu.onClick.Invoke();
+        var system=(RectTransform)Get86(bar,"_sysRoot");system.gameObject.SetActive(true);
+        yield return Shot("System-menu");system.gameObject.SetActive(false);
         var entries = (Array)typeof(HudBar).GetField("Entries",BindingFlags.NonPublic|BindingFlags.Static).GetValue(null);
         foreach(var entry in entries)
         {
@@ -1491,11 +1545,11 @@ public sealed partial class UiGalleryRunner : MonoBehaviour
         yield return new WaitForSecondsRealtime(1f);
         yield return Shot("Home");
         var home=canvas.GetComponentInChildren<HomeMenuLayout>();
-        home.transform.Find("SafeContent/Expedition/Combat").GetComponent<Button>().onClick.Invoke();
+        HomeButton(home,"Combat").onClick.Invoke();
         if(homeRoute!="Combat")Debug.LogError("UI GALLERY: home battle action did not navigate");
-        home.transform.Find("SafeContent/BottomDock/Party").GetComponent<Button>().onClick.Invoke();
+        HomeButton(home,"Party").onClick.Invoke();
         if(homeRoute!="Party")Debug.LogError("UI GALLERY: team requires an extra navigation step");
-        home.transform.Find("SafeContent/BottomDock/Inventory").GetComponent<Button>().onClick.Invoke();
+        HomeButton(home,"Inventory").onClick.Invoke();
         if(homeRoute!="Inventory")Debug.LogError("UI GALLERY: inventory requires an extra navigation step");
         typeof(HomeMenuLayout).GetMethod("Navigate",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(home,new object[]{"Workshop"});
         yield return Shot("Home-navigation");

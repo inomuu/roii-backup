@@ -37,7 +37,10 @@ namespace Roi.UI
         int _companionHeight;
         float _companionUiScale=1;
         internal void SetCompanionLayout(int height,float scale) { _companionHeight=height; _companionUiScale=scale; Arrange(); }
-        TextMeshProUGUI _memberName,_notice,_bagTitle;
+        TextMeshProUGUI _memberName,_notice,_bagTitle,_bagEmpty;
+        int _bagFilter; bool _bagSort;
+        readonly List<Button> _bagFilters=new();
+        Button _bagEquip,_bagSortButton; ScrollRect _bagScroll;
         readonly TextMeshProUGUI[] _summaryValues=new TextMeshProUGUI[4];
         Image _avatar;
         CombatHudPortrait _equipmentPortrait;
@@ -101,10 +104,17 @@ namespace Roi.UI
             ForgeUi.Heading(_bagTitle,20);
             _bagTitle.enableAutoSizing=true;_bagTitle.fontSizeMin=13;_bagTitle.fontSizeMax=20;
             _bagTitle.textWrappingMode=TextWrappingModes.NoWrap;
-            var scroll=ForgeUi.Rect(_main,"BagScroll",284,104,324,368); _bagContent=UiScroll.Create(scroll,out var bagScroll, false);
+            string[] filterKeys={"UI_COLLECTION_ALL","UI_REVIEW_GEAR","UI_FORGE_GEMS","UI_REVIEW_OTHER"};
+            for(int i=0;i<filterKeys.Length;i++) { int filter=i;
+                _bagFilters.Add(ForgeUi.Button(_main,filterKeys[i],284+i*64,96,60,30,()=>{_bagFilter=filter;Inspected=null;InspectedIndex=-1;InspectedRaw=null;Items?.Cancel();RefreshNow();_bagScroll.verticalNormalizedPosition=1;}));
+            }
+            _bagSortButton=ForgeUi.Button(_main,"UI_REVIEW_SORT",544,96,64,30,()=>{_bagSort=!_bagSort;RefreshNow();_bagScroll.verticalNormalizedPosition=1;});
+            var scroll=ForgeUi.Rect(_main,"BagScroll",284,134,324,338); _bagContent=UiScroll.Create(scroll,out var bagScroll, false);_bagScroll=bagScroll;
+            _bagEmpty=ForgeUi.Copy(scroll,"UI_COLLECTION_EMPTY",10,110,286,90,16,UiTheme.TextMid);ForgeUi.Wrap(_bagEmpty);_bagEmpty.alignment=TextAlignmentOptions.Center;
+            _bagEquip=ForgeUi.Button(_main,"UI_EX_GEAR_EQUIP",516,478,92,30,EquipInspected,true);
             // Five 56px cells occupy 304px. Reserve the remaining gutter for a draggable bar.
             bagScroll.viewport.offsetMax=new Vector2(-18,0);
-            var track=ForgeUi.Panel(scroll,"InventoryScrollTrack",312,0,12,368,new Color(.10f,.12f,.15f,.9f));
+            var track=ForgeUi.Panel(scroll,"InventoryScrollTrack",312,0,12,338,new Color(.10f,.12f,.15f,.9f));
             var handle=UiTheme.Flat(track.transform,"Handle",new Color(.66f,.61f,.48f,.95f));
             handle.rectTransform.anchorMin=Vector2.zero;handle.rectTransform.anchorMax=Vector2.one;
             handle.rectTransform.offsetMin=new Vector2(2,0);handle.rectTransform.offsetMax=new Vector2(-2,0);
@@ -115,7 +125,7 @@ namespace Roi.UI
             bagScroll.verticalScrollbar=bar;
             bagScroll.verticalScrollbarVisibility=ScrollRect.ScrollbarVisibility.AutoHide;
             // Only transient action feedback remains; item details live in the hover tooltip.
-            _notice=ForgeUi.Text(_main,"ActionNotice","",284,480,320,28,12); ForgeUi.Wrap(_notice);
+            _notice=ForgeUi.Text(_main,"ActionNotice","",284,478,224,32,12); ForgeUi.Wrap(_notice);
             _notice.enableAutoSizing=true;_notice.fontSizeMin=11;_notice.fontSizeMax=12;_notice.raycastTarget=false;
             _blacksmithButton=ForgeUi.Button(_main,"UI_BLACKSMITH",12,516,112,34,()=>Side(ActiveSide==SideForge?SideNone:SideForge));
             _trainingButton=ForgeUi.Button(_main,"UI_TRAINING",133,516,112,34,()=>Side(ActiveSide==SideTraining?SideNone:SideTraining));
@@ -238,7 +248,7 @@ namespace Roi.UI
                 }
                 int index=i; var item=entries[i];
                 bool picked=ActiveSide==SideDisenchant?_disenchantBatch.Contains(index):
-                    gems?Model.Gems.Contains(item.def_id):Model.Gear.Any(p=>p.Index==index);
+                    gems?Model.Gems.Contains(item.def_id):ActiveSide==SideForge?Model.Gear.Any(p=>p.Index==index):InspectedOwner==0&&InspectedIndex==index;
                 _bag[i].Bind(item,()=>
                 {
                     if(!gems)MarkBagRead(index);
@@ -260,16 +270,49 @@ namespace Roi.UI
                 bool socketFilter=ActiveSide==SideSocket&&_socket.GemFirst&&_socket.HasSelectedGem;
                 _bag[i].SetCompatibility(socketFilter,!socketFilter||_socket.IsCompatibleInventory(index));
             }
-            UiScroll.Fit(_bagContent,(visibleCells/BagColumns-1)*BagPitch+BagCellSize);
+            LayoutBag(entries,gems);
             if(Inspected!=null&&InspectedIndex>=0)
             {
                 var source=InspectedOwner==0?_equipment?.Inventory:_equipment?.Candidates;
                 var row=source?.FirstOrDefault(r=>r.Index==InspectedIndex&&r.OwnerId==InspectedOwner);
                 if(row?.Raw!=InspectedRaw) { Inspected=null; InspectedIndex=-1; InspectedRaw=null; }
             }
-            _notice.text=Time.unscaledTime<_autoEquipMessageUntil?_autoEquipMessage:"";
+            var selected=_equipment?.Inventory?.FirstOrDefault(r=>r.Index==InspectedIndex&&InspectedOwner==0&&r.Raw==InspectedRaw);
+            bool gear=selected!=null&&(selected.Item.kind=="Weapon"||selected.Item.kind=="Armor");
+            bool normal=ActiveSide==SideNone||ActiveSide==SideTraining||ActiveSide==SideCrests;
+            _bagEquip.gameObject.SetActive(normal);_bagEquip.interactable=normal&&ItemsAvailable&&gear&&ExemplarEquipmentActions.EquipIssue(_equipment,selected)==null;
+            _notice.text=Time.unscaledTime<_autoEquipMessageUntil?_autoEquipMessage:Inspected!=null?GameText.ItemName(Inspected):Loc.Get("UI_REVIEW_BAG_HINT");
             RefreshCrests();
             BindItemInteractions(entries,gems);Items.Refreshed();
+        }
+        void LayoutBag(ItemView[] entries,bool gems)
+        {
+            var order=Enumerable.Range(0,entries.Length).Where(i=>gems||_bagFilter==0
+                ||(_bagFilter==1&&(entries[i].kind=="Weapon"||entries[i].kind=="Armor"))
+                ||(_bagFilter==2&&Model.IsGem(entries[i]))
+                ||(_bagFilter==3&&entries[i].kind!="Weapon"&&entries[i].kind!="Armor"&&!Model.IsGem(entries[i]))).ToList();
+            if(_bagSort)order=order.OrderByDescending(i=>entries[i].grade_step).ThenByDescending(i=>entries[i].level_req).ThenBy(i=>i).ToList();
+            for(int i=0;i<entries.Length;i++)_bag[i].Root.gameObject.SetActive(order.Contains(i));
+            for(int i=entries.Length;i<_bag.Count;i++)_bag[i].Root.gameObject.SetActive(false);
+            for(int n=0;n<order.Count;n++){var cell=_bag[order[n]];cell.Root.gameObject.SetActive(true);ForgeUi.Place(cell.Root,(n%BagColumns)*BagPitch,(n/BagColumns)*BagPitch,BagCellSize,BagCellSize);}
+            // Only geometry is sorted. Every callback and drag payload keeps its native bag index.
+            int cells=Mathf.Max(BagMinimumCells,((order.Count+BagColumns-1)/BagColumns)*BagColumns);
+            for(int n=order.Count,k=entries.Length;n<cells&&k<_bag.Count;n++,k++){_bag[k].Root.gameObject.SetActive(true);ForgeUi.Place(_bag[k].Root,(n%BagColumns)*BagPitch,(n/BagColumns)*BagPitch,BagCellSize,BagCellSize);}
+            UiScroll.Fit(_bagContent,Mathf.Max(0,(cells/BagColumns-1)*BagPitch+BagCellSize));
+            _bagEmpty.gameObject.SetActive(order.Count==0);_bagEmpty.transform.SetAsLastSibling();
+            SetToolHighlight(_bagSortButton,_bagSort);
+            for(int i=0;i<_bagFilters.Count;i++){SetToolHighlight(_bagFilters[i],i==(gems?2:_bagFilter));_bagFilters[i].interactable=!gems;}
+        }
+        void EquipInspected()
+        {
+            var row=_equipment?.Inventory?.FirstOrDefault(r=>r.Index==InspectedIndex&&InspectedOwner==0&&r.Raw==InspectedRaw);
+            if(row==null||!ItemsAvailable)return;
+            var fresh=FreshSnapshot(row);if(fresh==null){RefreshNow();return;}
+            var choice=ExemplarEquipmentActions.FreezeEquip(fresh,row);
+            var result=ExemplarEquipmentActions.Apply(Model.Driver,choice,_memberId);
+            if(result!=ExemplarEquipmentActions.Result.Applied)ActionNotice(VerifiedInputResult.Stale);
+            else { Inspected=null;InspectedIndex=-1;InspectedRaw=null; }
+            RefreshNow();
         }
         void Inspect(ItemView item,int index,long owner,string raw,bool refresh=true)
         { Inspected=item; InspectedIndex=index; InspectedOwner=owner; InspectedRaw=raw; if(refresh)RefreshNow(); }
@@ -282,7 +325,7 @@ namespace Roi.UI
             if (row != null) Inspect(row.Item,row.Index,row.OwnerId,row.Raw,false);
         }
         void OnResult(ForgeModel.Receipt receipt)
-        { if(!IsOpen)Open(); if(!Model.PublishingAutoFusionResult&&ActiveSide!=SideForge)Side(SideForge); Result.Show(receipt); RefreshNow(); }
+        { RefreshNow(); }
         public void Confirm(string message,Action accepted)
         {
             Items.Cancel();CancelConfirmation();
@@ -291,8 +334,9 @@ namespace Roi.UI
             float boxWidth=Mathf.Min(620,WindowWidth-80);
             var box=ForgeUi.Panel(_confirm,"ConfirmBox",(WindowWidth-boxWidth)*.5f,166,boxWidth,198,ForgeUi.Raised).rectTransform;
             DialogSurface.Apply(box.GetComponent<Image>());
+            DialogSurface.CloseIcon(box,()=>{if(_confirm==confirmation)CancelConfirmation();});
             float w=box.rect.width;
-            var messageView=ForgeUi.Rect(box,"MessageScroll",22,25,w-44,82);
+            var messageView=ForgeUi.Rect(box,"MessageScroll",22,48,w-44,66);
             var messageContent=UiScroll.Create(messageView,out _, false);
             var copy=ForgeUi.Text(messageContent,"Warning",message,0,0,w-58,82,15); ForgeUi.Wrap(copy);
             float messageHeight=Mathf.Max(82,copy.GetPreferredValues(message,w-58,10000).y+8);

@@ -181,9 +181,10 @@ namespace Roi.UI
                 _gil.text = "";
                 _status.text = "";
                 Clear();
-                var notice=MenuNotice.Create(_content,"Trade",Loc.Get("UI_NOTICE_CONNECTION"),Loc.Get("UI_NOTICE_TRADE"),()=>net.Connect());
+                SetPanes(false);
+                var notice=MenuNotice.Create(_root,"Trade",Loc.Get("UI_NOTICE_CONNECTION"),Loc.Get("UI_NOTICE_TRADE"),()=>net.Connect());
                 _built.Add(notice);
-                UiScroll.Fit(_content,348f);
+                MenuNotice.Center(notice);
                 return;
             }
 
@@ -210,9 +211,21 @@ namespace Roi.UI
             Rebuild();
         }
 
+        void SetPanes(bool visible)
+        {
+            _root.Find("Items").gameObject.SetActive(visible);
+            _root.Find("Details").gameObject.SetActive(visible);
+        }
+        void EmptyMarket(string message)
+        {
+            SetPanes(false); _status.text="";
+            var notice=MenuNotice.Create(_root,"Trade",GameText.ScreenName("Trade"),message);
+            MenuNotice.Center(notice); _built.Add(notice);
+        }
         void Rebuild()
         {
             Clear();
+            SetPanes(true);
             var sim = _driver != null ? _driver.Session : null;
             if (sim == null) return;
             _gil.text = $"{Purse(sim):N0} Gil";
@@ -232,14 +245,8 @@ namespace Roi.UI
             var chips = _mode == Mode.Buy ? CatalogChips(sim) : HeldChips(sim);
             if (chips.Count == 0)
             {
-                var none = UiTheme.Label(_content, "None",
-                    _mode == Mode.Buy ? "No tradeable commodities in the catalog."
-                                      : "You hold nothing that trades on the commodity book.",
-                    UiTheme.BodySize, UiTheme.TextLow, TextAlignmentOptions.TopLeft);
-                Place(none.rectTransform, y, 100f);
-                _built.Add(none.gameObject);
-                UiScroll.Fit(_content, y + 24f);
-                return;
+                                EmptyMarket(Loc.Get(_mode==Mode.Buy?"UI_MKT_EMPTY_CATALOG":"UI_MKT_EMPTY_HELD"));
+return;
             }
             BuildChips(chips, ref y);
             y=0;
@@ -431,6 +438,7 @@ namespace Roi.UI
             CatalogChips(sim); // Resolve names even when My listings is the first tab opened.
             var mine=JsonUtility.FromJson<OrderList>("{\"rows\":"+(string.IsNullOrEmpty(_mineJson)?"[]":_mineJson)+"}");
             var rows=mine?.rows??new Order[0];
+            if(rows.Length==0){EmptyMarket(Loc.Get("UI_MKT_NOLISTINGS"));return;}
             _status.text=Take()??Loc.Get("UI_MKT_LISTINGSHINT");
             var heading=UiTheme.Label(_list,"ListingsHeading",Loc.Get("UI_MKT_MYLISTINGS")+" · "+rows.Length,UiTheme.BodySize,UiTheme.Accent,TextAlignmentOptions.Left);
             Place(heading.rectTransform,0,24);_built.Add(heading.gameObject);

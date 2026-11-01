@@ -52,6 +52,7 @@ namespace Roi.UI
                 Text(rect,"Label",text,34,13,180,37,22,name=="Confirm"?Gold:Ivory).alignment=TextAlignmentOptions.Center;
                 var button=Hit(rect,action);button.targetGraphic=skin;UiButtonFeedback.Add(button);return button;
             }
+            DialogSurface.CloseIcon(panel,modal.Close);
             UiEntrance.Play(panel);
             var back=Action("Cancel",Loc.Get("UI_EXCAVATION_CANCEL"),112,modal.Close);
             var ok=Action("Confirm",Loc.Get("UI_EXCAVATION_CONFIRM"),396,()=>{

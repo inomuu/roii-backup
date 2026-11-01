@@ -123,7 +123,7 @@ namespace Roi.UI
         public void OpenMore() => Navigate("More");
         void Navigate(string id)
         {
-            if(id=="More" && _homeMenu!=null){CloseGroup();RevealHomeMenu();return;}
+            if(id=="More"){OpenTerminal();return;}
             if(id=="News"){OpenNews();return;}
             if(id=="Combat") { var modes=UnityEngine.Object.FindFirstObjectByType<ModeTabs>();if(modes!=null)modes.Select(true);else _open?.Invoke("Combat");return; }
             if(id=="Party" || id=="Inventory") { _open?.Invoke(id); return; }
@@ -149,6 +149,7 @@ namespace Roi.UI
             dismiss.navigation=new Navigation{mode=Navigation.Mode.None};
             var panel=UiTheme.Box(dim.transform,"Group",UiTheme.Panel);
             DialogSurface.Apply(panel);
+            DialogSurface.CloseIcon(panel.transform,()=>CloseGroup());
             Place(panel.rectTransform,.23f,.08f,.89f,.88f);
             RoundedFrame(panel);
             string title=id switch {"More"=>Loc.Get("UI_HOME_MORE"),"Workshop"=>Loc.Get("UI_HOME_WORKSHOP"),"Store"=>Loc.Get("UI_HOME_STORE"),"Mission"=>Loc.Get("UI_HOME_MISSION"),"Secondary3"=>Loc.Get("UI_HOME_ACHIEVEMENT"),_=>GameText.ScreenName(id)};
@@ -198,7 +199,7 @@ namespace Roi.UI
             CloseGroup();
             var dim=UiTheme.Flat(transform,"NewsOverlay",UiTheme.Scrim);_group=dim.gameObject;Place(dim.rectTransform,0,0,1,1);
             var panel=UiTheme.Box(dim.transform,"News",UiTheme.Panel);
-            DialogSurface.Apply(panel);Place(panel.rectTransform,.26f,.20f,.74f,.80f);RoundedFrame(panel);
+            DialogSurface.Apply(panel);DialogSurface.CloseIcon(panel.transform,()=>CloseGroup());Place(panel.rectTransform,.26f,.20f,.74f,.80f);RoundedFrame(panel);
             Text(panel.transform,"Title",Loc.Get("UI_TITLE_NEWS"),.08f,.78f,.90f,.94f,38,Ivory);
             Text(panel.transform,"Version",Loc.Fmt("UI_TITLE_RELEASE",Roi.Sim.SimSession.SimVersion()),.08f,.61f,.92f,.76f,26,Gold);
             Text(panel.transform,"Body",Loc.Get("UI_TITLE_RELEASE_NOTES"),.08f,.22f,.92f,.59f,26,Ivory);

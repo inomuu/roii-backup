@@ -23,6 +23,7 @@ namespace Roi.UI
         const float W = 300f, Pad = 12f, LineH = 19f;
 
         static ItemTooltip _instance;
+        FloatingItemTooltip _itemCard;
 
         RectTransform _panel;
         readonly List<GameObject> _lines = new();
@@ -34,7 +35,9 @@ namespace Roi.UI
             if (item == null || string.IsNullOrEmpty(item.def_id)) { Hide(); return; }
             if (!Ensure()) return;
             _instance.gameObject.SetActive(true);
-            _instance.Fill(item);
+            _instance._itemCard ??= FloatingItemTooltip.Create(_instance.transform.parent);
+            _instance._panel.gameObject.SetActive(false);
+            _instance._itemCard.Show(FloatingItemDescription.Format(item), screenPos, item);
             _instance.Place(screenPos);
         }
 
@@ -49,6 +52,8 @@ namespace Roi.UI
             if (lines == null || lines.Length == 0) { Hide(); return; }
             if (!Ensure()) return;
             _instance.gameObject.SetActive(true);
+            _instance._itemCard?.Hide();
+            _instance._panel.gameObject.SetActive(true);
             _instance.FillLines(lines);
             _instance.Place(screenPos);
         }
@@ -70,6 +75,17 @@ namespace Roi.UI
             _instance = go.AddComponent<ItemTooltip>();
             _instance.Build();
             return true;
+        }
+
+        void Update()
+        {
+            if (_itemCard != null && _itemCard.Visible && _itemCard.CanScroll)
+                _itemCard.Scroll((UnityEngine.InputSystem.Mouse.current?.scroll.ReadValue().y ?? 0f) / 120f);
+        }
+        void OnDisable() => _itemCard?.Hide();
+        void OnDestroy()
+        {
+            if (_itemCard != null) Destroy(_itemCard.gameObject);
         }
 
         void FillLines(string[] lines)

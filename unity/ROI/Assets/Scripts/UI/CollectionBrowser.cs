@@ -214,9 +214,9 @@ namespace Roi.UI
             _name.text=GameText.ItemName(e.Item);_meta.text=GameText.GradeLabel(e.Item.grade_step)+" · "+Loc.GetOr("UI_SLOT_"+e.Item.slot,Loc.GetOr("UI_FLOAT_KIND_"+e.Item.kind,e.Item.kind));
             _art.SetItem(e.Item,e.Item.slot);_art.enabled=!e.Gem;_gemArt.enabled=e.Gem;_grade.color=ItemGradeSurface.Accent(e.Item,e.Gem);_owner.text=owner;
             string body=description??"";int first=body.IndexOf('\n');if(first>=0)body=body.Substring(first+1);int second=body.IndexOf('\n');if(second>=0)body=body.Substring(second+1);
-            if(worn!=null&&(e.Item.kind=="Weapon"||e.Item.kind=="Armor"))
+            if(_picker&&(e.Item.kind=="Weapon"||e.Item.kind=="Armor"))
             {
-                body=Loc.Get("UI_EX_GEAR_CURRENT")+": "+GameText.ItemName(worn)+"\n"+Compare("UI_EXEMPLAR_ATK",worn.graded_atk,e.Item.graded_atk)+Compare("UI_EXEMPLAR_DEF",worn.graded_def,e.Item.graded_def)+"\n"+body+"\n\n"+Loc.Get("UI_EX_GEAR_ITEM_ONLY");
+                body=Loc.Get("UI_EX_GEAR_COMPARE_COLUMNS")+"\n"+Loc.Get("UI_EX_GEAR_CURRENT")+": "+(worn==null?Loc.Get("UI_REVIEW_EMPTY_SLOT"):GameText.ItemName(worn))+"\n"+Compare("UI_EXEMPLAR_ATK",worn?.graded_atk??0,e.Item.graded_atk)+Compare("UI_EXEMPLAR_DEF",worn?.graded_def??0,e.Item.graded_def)+"\n"+body+"\n\n"+Loc.Get("UI_EX_GEAR_ITEM_ONLY");
             }
             if(!enabled&&!string.IsNullOrEmpty(notice))body="<color=#D8BE81>"+notice+"</color>\n\n"+body;
             _body.text=body;FitDescription();

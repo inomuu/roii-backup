@@ -856,7 +856,6 @@ namespace Roi.Arena
         }
 
         Roi.UI.ArenaOverlay _overlay;
-        Roi.UI.AreaSelector _areaSel;
         Roi.UI.ClearSummary _clear;
         Roi.UI.DpsMeter _dps;
         Roi.UI.CompanionWidget _companion;
@@ -878,7 +877,6 @@ namespace Roi.Arena
             // The room's own readout arrives with the chrome, and from the same view the arena
             // renders: how far this room is from its boss, the boss's health, the clear card.
             _overlay = Roi.UI.ArenaOverlay.Create(transform, _tab.field.zones_per_region);
-            _areaSel = Roi.UI.AreaSelector.Create(transform);
             // Both of these ride the per-tick view too, and both belong to the FIGHT rather than
             // to the menus: the run summary raises itself when a dungeon falls, and the meter is
             // read while the fight runs.
@@ -2913,7 +2911,6 @@ namespace Roi.Arena
             // The overlay reads the SAME payload, and it reads it first: it has to draw a boss
             // that just spawned on the tick the arena is about to place it.
             if (_overlay != null) _overlay.OnView(json);
-            if (_areaSel != null) _areaSel.OnView(json);
             if (_clear != null) _clear.OnView(json);
             if (_death != null) _death.OnView(json);
             if (_sound != null) _sound.OnView(json);
@@ -4115,12 +4112,18 @@ namespace Roi.Arena
             return m;
         }
 
+        [SerializeField] bool showDiagnostics = false;
+
         void OnGUI()
         {
-            // Nothing over the login. This strip is a dev readout about a running sim, and while
-            // there is none it is only a line of debug text across the title screen.
-            if (_driver == null || _driver.Session == null || (_modeTabs != null && !_modeTabs.IsCombat)) return;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Opt-in diagnostics must never cover a gameplay window heading.
+            if (!showDiagnostics || _driver == null || _driver.Session == null ||
+                (_modeTabs != null && !_modeTabs.IsCombat)) return;
+            foreach (var window in UnityEngine.Object.FindObjectsByType<Roi.UI.UiWindow>(FindObjectsSortMode.None))
+                if (window.IsOpen) return;
             GUI.Label(new Rect(10, 10, 800, 24), $"P1 arena — {_status}   actors {_actors.Count}   grid {_gw}x{_gh}");
+#endif
         }
 
         // --- view JSON DTOs (JsonUtility ignores the other top-level keys) ---

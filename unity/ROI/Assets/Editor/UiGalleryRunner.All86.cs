@@ -15,15 +15,10 @@ public sealed partial class UiGalleryRunner
 {
     IEnumerator Menu88Drive()
     {
-        var bar=HudBar.Create(transform);yield return null;
-        Call86(bar,"SetMenuOpen",true);yield return Shot("Adventure");
-        var panel=(RectTransform)Get86(bar,"_menuPanel");
-        foreach(var tab in panel.GetComponentsInChildren<Button>())
-            if(tab.transform.parent==panel && tab.name.Contains(Loc.Get("UI_NAV_ROSTER"))) {tab.onClick.Invoke();break;}
-        yield return Shot("Exemplars");
-        foreach(var tab in panel.GetComponentsInChildren<Button>())
-            if(tab.transform.parent==panel && tab.name.Contains(Loc.Get("UI_NAV_SUPPLIES"))) {tab.onClick.Invoke();break;}
-        yield return Shot("Services");Finish86();
+        var bar=HudBar.Create(transform);var modes=ModeTabs.Create(transform);yield return null;
+        bar.Toggle("Menu");yield return Shot("Home-more");
+        if(modes.IsCombat || bar.transform.Find("MenuPanel")!=null)Debug.LogError("Legacy menu was not replaced by Home.");
+        Finish86();
     }
     const BindingFlags All86Flags=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
     static object Get86(object target,string field)=>target.GetType().GetField(field,All86Flags).GetValue(target);
@@ -44,7 +39,7 @@ public sealed partial class UiGalleryRunner
     {
         var bar=HudBar.Create(transform);yield return null;
         bar.Toggle("Inventory");yield return null;
-        var bag=bar.Floating;
+        bar.CloseAll();var bag=bar.Floating;bag.Open();yield return null;
         var item=bag.Model.Bag[0];
         Call86(bag,"Inspect",item,0,0L,"",true);
         yield return Shot("Inventory-item-detail");
@@ -86,6 +81,21 @@ public sealed partial class UiGalleryRunner
             var content=(RectTransform)Get86(shop,"_content");content.GetComponentInChildren<Button>().onClick.Invoke();yield return Shot("Shop-preview");Close86();Finish86();yield break;
         }
 
+        if(_output.Contains("notice119")) {
+            foreach(var input in UnityEngine.Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None))input.enabled=false;
+            foreach(var page in new[]{"Cards","Weekly","Trade","Stash","Pass"}) {
+                bar.CloseAll();bar.Toggle(page);yield return Shot(page);
+            }
+            bar.CloseAll();bar.Toggle("Shop");yield return null;
+            var shop=Find86<ShopWindow>();
+            foreach(int category in new[]{4,5,1}) {
+                Call86(shop,"Select",category);yield return Shot("Shop-"+category);
+                var purchase=(Button)Get86(shop,"_purchase");
+                if(category!=1&&purchase.gameObject.activeSelf)Debug.LogError("Empty category displays Buy.");
+                if(category==1&&!purchase.gameObject.activeSelf)Debug.LogError("Populated category lost Buy.");
+            }
+            Finish86();yield break;
+        }
         // These are fabricated renderer inputs, not server responses or actual account balances.
         string period="{\"ok\":true,\"day\":1,\"week\":1,\"now_ms\":0,\"resets_at_ms\":86400000,\"claimable_crystal\":10,\"points\":40,\"board\":[{\"id\":\"kills_2500\",\"target\":2500,\"progress\":2500,\"done\":true},{\"id\":\"rooms_10\",\"target\":10,\"progress\":10,\"done\":true},{\"id\":\"damage_1m\",\"target\":1000000,\"progress\":640000,\"done\":false},{\"id\":\"fuse_3\",\"target\":3,\"progress\":1,\"done\":false},{\"id\":\"train_1\",\"target\":1,\"progress\":0,\"done\":false},{\"id\":\"spend_gil\",\"target\":10000,\"progress\":3000,\"done\":false}],\"ladder\":[{\"points\":20,\"crystal\":10,\"reached\":true,\"claimed\":true},{\"points\":40,\"crystal\":10,\"reached\":true,\"claimed\":false},{\"points\":60,\"crystal\":10,\"reached\":false,\"claimed\":false},{\"points\":80,\"crystal\":10,\"reached\":false,\"claimed\":false},{\"points\":100,\"crystal\":10,\"reached\":false,\"claimed\":false}]}";
         foreach(var page in new[]{"Daily","Weekly"}){bar.CloseAll();bar.Toggle(page);yield return null;var w=Find86<PeriodWindow>();Set86(w,"_json",period);Call86(w,"Rebuild");yield return Shot(page+"-sample");}
@@ -132,10 +142,15 @@ public sealed partial class UiGalleryRunner
         yield return Shot("Title");Call86(title,"OpenSignIn");yield return Shot("Sign-in");
         title.SetBusy(true,"Connecting…");yield return Shot("Sign-in-busy");title.SetBusy(false,"Connection unavailable");yield return Shot("Sign-in-error");
         title.ShowCreation(null);yield return Shot("Create-party");title.Dismiss();yield return null;
+        File.WriteAllText(Path.Combine(_output,"progress.txt"),"title dismissed");
         // Build the real combat scene renderer around the already-owned disposable session.
         var arena=new GameObject("GalleryArena").AddComponent<Roi.Arena.ArenaView>();arena.AwaitBoot=true;
         yield return null;yield return null;
-        Set86(arena,"_driver",GetComponent<SimDriver>());Call86(arena,"BuildBar");arena.FeedView(GetComponent<SimDriver>().Session.ViewJson());
+        File.WriteAllText(Path.Combine(_output,"progress.txt"),"arena started");
+        Set86(arena,"_driver",GetComponent<SimDriver>());Call86(arena,"BuildBar");
+        File.WriteAllText(Path.Combine(_output,"progress.txt"),"bar built");
+        arena.FeedView(GetComponent<SimDriver>().Session.ViewJson());
+        File.WriteAllText(Path.Combine(_output,"progress.txt"),"view fed");
         // Exercise the shipping renderer and actor shader; a gallery-only fallback conceals
         // incompatibilities with the PC deferred renderer.
         arena.enabled=false;
@@ -169,7 +184,7 @@ public sealed partial class UiGalleryRunner
     IEnumerator More86Drive()
     {
         var bar=HudBar.Create(transform);yield return null;bar.Toggle("Inventory");yield return null;
-        var bag=bar.Floating;bag.Side(FloatingInventoryHost.SideSocket);
+        bar.CloseAll();var bag=bar.Floating;bag.Open();yield return null;bag.Side(FloatingInventoryHost.SideSocket);
         bag.Confirm(Loc.Get("UI_FLOAT_SOCKET_WARNING"),()=>{});yield return Shot("Socket-insert-confirm");Call86(bag,"CancelConfirmation");yield return null;
         bag.Confirm(Loc.Get("UI_FLOAT_REPLACE_WARNING"),()=>{});yield return Shot("Socket-replace-confirm");Call86(bag,"CancelConfirmation");yield return null;
         bag.Close();bar.CloseAll();bar.Toggle("Party");yield return null;

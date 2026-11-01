@@ -50,6 +50,7 @@ namespace Roi.UI
             scrim.sprite=ResultAtmosphere();
             var sr=scrim.rectTransform;sr.anchorMin=Vector2.zero;sr.anchorMax=Vector2.one;sr.offsetMin=sr.offsetMax=Vector2.zero;
             _panel=ExemplarUi.Rect(root,"ResultContent",.22f,.10f,.78f,.74f);
+            DialogSurface.CloseIcon(root,Leave,UiTheme.TextHigh);
             _title=ExemplarUi.Text(_panel,"Title","",0,.85f,1,.96f,28,UiTheme.TextHigh);
             _title.alignment=TextAlignmentOptions.Center;UiTheme.Display(_title);
             _performance=ExemplarUi.Text(_panel,"Performance","",.14f,.76f,.86f,.86f,27,UiTheme.TextHigh);

@@ -21,7 +21,7 @@ namespace Roi.UI
             _ring.enabled = false;
         }
 
-        public void OnSelect(BaseEventData eventData) { if (_ring != null) _ring.enabled = true; }
+        public void OnSelect(BaseEventData eventData) { if (_ring != null) { _ring.color=GetComponentInParent<NoticeDialogStyle>()!=null?new Color(.65f,.69f,.70f,.8f):UiTheme.Accent; _ring.enabled = true; } }
         public void OnDeselect(BaseEventData eventData) { if (_ring != null) _ring.enabled = false; }
         void OnDisable() { if (_ring != null) _ring.enabled = false; }
     }

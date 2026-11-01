@@ -69,6 +69,8 @@ namespace Roi.Story
             block.transition = Selectable.Transition.None;
 
             var box = Roi.UI.UiTheme.Box(root, "Panel", Roi.UI.UiTheme.Panel, 10);
+            Roi.UI.DialogSurface.Apply(box);
+            Roi.UI.DialogSurface.CloseIcon(box.transform,Dismiss);
             Roi.UI.UiTheme.Border(box.rectTransform, Roi.UI.UiTheme.Accent, 10);
             _panel = box.rectTransform;
             _panel.anchorMin = _panel.anchorMax = new Vector2(0.5f, 0.5f);
@@ -90,7 +92,7 @@ namespace Roi.Story
         {
             foreach (var go in _built) Destroy(go);
             _built.Clear();
-            _y = Roi.UI.UiTheme.PadLarge;
+            _y = 56f;
 
             Line(Roi.UI.Loc.Get("UI_STORY_CLEARED"), 24f, Roi.UI.UiTheme.Accent, 30f);
             if (!string.IsNullOrEmpty(titleKey))

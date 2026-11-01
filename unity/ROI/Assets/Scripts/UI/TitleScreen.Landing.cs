@@ -39,23 +39,34 @@ namespace Roi.UI
             _serverEndpoint = Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
                 (uri.Scheme == "https" || uri.Scheme == "http") ? endpoint : Roi.Net.OnlineService.ServerUrl;
             _rail=Rect(_landing,"UtilityRail");
-            Pin(_rail,Vector2.zero,new Vector2(116,432));
-            var settings=RailButton("Settings", "UI_TITLE_SETTINGS",TitleGlyph.Symbol.Settings,0,OpenSettings);
+            Pin(_rail,Vector2.zero,new Vector2(100,390));
+            var settings=RailButton("Settings", "UI_TITLE_SETTINGS",TitleGlyph.Symbol.Settings,3,OpenSettings);
             var news=RailButton("News", "UI_TITLE_NEWS",TitleGlyph.Symbol.News,1,OpenNews);
-            var support=RailButton("Support", "UI_TITLE_SUPPORT",TitleGlyph.Symbol.Support,2,OpenSupport);
-            var account=RailButton("Account", "UI_TITLE_ACCOUNT",TitleGlyph.Symbol.Account,3,OpenSignIn);
-            RegisterFocus(_landingOrder,_tapCatcher,settings,news,support,account);
+            var support=RailButton("Support", "UI_TITLE_SUPPORT",TitleGlyph.Symbol.Tools,2,OpenSupport);
+
+            var exit=RailButton("Exit","UI_TITLE_EXIT",TitleGlyph.Symbol.Exit,0,ExitTitle);
+            RegisterFocus(_landingOrder,_tapCatcher,exit,news,support,settings);
+
+        }
+
+        static void ExitTitle(){
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying=false;
+#else
+            Application.Quit();
+#endif
         }
 
         Button RailButton(string name,string key,TitleGlyph.Symbol symbol,int row,Action click)
         {
             var button=QuietButton(_rail,name,Loc.Get(key),click);
-            Anchor((RectTransform)button.transform,new Vector2(0,-row*104),new Vector2(116,100));
+            Anchor((RectTransform)button.transform,new Vector2(0,-row*72),new Vector2(100,68));
             var label=button.GetComponentInChildren<TextMeshProUGUI>();
-            label.fontSize=19;
-            Pin(label.rectTransform,new Vector2(0,-30),new Vector2(116,34));
-            var icon=TitleGlyph.Add(button.transform,symbol,true);
-            Pin(icon.rectTransform,new Vector2(0,15),new Vector2(56,56));
+            label.fontSize=16;
+            Pin(label.rectTransform,new Vector2(0,-16),new Vector2(100,24));
+            var icon=TitleGlyph.Add(button.transform,symbol,false);
+            icon.color=new Color(.92f,.96f,.96f,1);
+            Pin(icon.rectTransform,new Vector2(0,10),new Vector2(46,46));
             return button;
         }
 
@@ -114,55 +125,28 @@ namespace Roi.UI
 
         void StyleFantasySignIn(Image panel,TMP_Text heading,TMP_Text fieldLabel,bool steam)
         {
-            foreach(var name in new[]{"DialogSurface","HeaderWash","HeaderRule"})
-            { var old=panel.transform.Find(name); if(old!=null)old.gameObject.SetActive(false); }
-            float height=steam && DevDoors?570:475;
-            _signIn.sizeDelta=new Vector2(600,height);
-            _signIn.localScale=Vector3.one*.85f;
-            panel.color=UiTheme.WithAlpha(UiTheme.Panel,.97f);
-            panel.sprite=UiTheme.Fill(8); panel.type=Image.Type.Sliced;
-            var gold=UiTheme.Accent;
-            var border=UiTheme.Border(_signIn,gold); border.sprite=UiTheme.Frame(8); border.raycastTarget=false;
-            heading.fontSize=32;
-            TitleOrnament(_signIn,"AccountCrest",HomeCelestialArt.Motif.Sigil,Vector2.zero,new Vector2(84,84),true);
-            Anchor(heading.rectTransform,new Vector2(0,-32),new Vector2(440,52));
-            var rule=UiTheme.Flat(_signIn,"FantasyDivider",UiTheme.WithAlpha(gold,.65f));
-            rule.raycastTarget=false; Anchor(rule.rectTransform,new Vector2(0,-98),new Vector2(320,1));
-            FantasyDiamond(_signIn,new Vector2(0,-98),5,gold);
-            FantasyDiamond(_signIn,new Vector2(-15,-98),2,gold);
-            FantasyDiamond(_signIn,new Vector2(15,-98),2,gold);
-            TitleOrnament(_signIn,"AccountRule",HomeCelestialArt.Motif.Rule,new Vector2(0,-98),new Vector2(320,24));
-            foreach(float x in new[]{-1f,1f})foreach(float y in new[]{0f,1f})
-            {
-                float top=y==0?-12:-height+12;
-                FantasyDiamond(_signIn,new Vector2(x*286,top),3,gold);
-                FantasyDiamond(_signIn,new Vector2(x*278,top+(y==0?-7:7)),2,gold);
+            panel.GetComponent<NoticeDialogStyle>().CompactLogin=true;
+            foreach(var name in new[]{"HeaderWash","HeaderRule","HeadingRule","DialogCrest"}) {
+                var old=panel.transform.Find(name);if(old!=null)old.gameObject.SetActive(false);
             }
-            Anchor(fieldLabel.rectTransform,new Vector2(0,-130),new Vector2(512,32));
-            Anchor((RectTransform)_nameField.transform,new Vector2(0,-166),new Vector2(512,66));
-            var input=_nameField.GetComponent<Image>(); input.sprite=UiTheme.Fill();input.color=UiTheme.Surface;
-            foreach(var graphic in input.GetComponentsInChildren<Image>())if(graphic!=input)
-            {graphic.sprite=UiTheme.Frame();graphic.color=UiTheme.LineStrong;graphic.raycastTarget=false;}
-            Anchor((RectTransform)_play.transform,new Vector2(0,-266),new Vector2(504,90));
-            var primary=_play.GetComponent<Image>();primary.sprite=UiTheme.Fill();primary.color=UiTheme.FramePrimary;
-            foreach(var graphic in primary.GetComponentsInChildren<Image>())if(graphic!=primary)
-            {graphic.sprite=UiTheme.Frame();graphic.color=gold;graphic.raycastTarget=false;}
-            _play.GetComponentInChildren<TMP_Text>().color=UiTheme.TextHigh;
-            _play.GetComponentInChildren<TMP_Text>().fontSize=30;
-            TitleOrnament(_play.transform,"PlayFrame",HomeCelestialArt.Motif.BattleFrame,new Vector2(0,0),new Vector2(504,90));
-            var playFrame=(RectTransform)_play.transform.Find("PlayFrame");
-            Stretch(playFrame);playFrame.SetAsFirstSibling();
-            var glow=UiTheme.Border((RectTransform)_play.transform,UiTheme.WithAlpha(UiTheme.Accent,.28f));
-            glow.sprite=UiTheme.Frame(8,2);glow.raycastTarget=false;
-            glow.rectTransform.offsetMin=new Vector2(-3,-3);glow.rectTransform.offsetMax=new Vector2(3,3);
-            if(_routeSwap!=null)Anchor((RectTransform)_routeSwap.transform,new Vector2(0,-366),new Vector2(512,80));
-            if(_dev!=null)
-            {
-                Anchor((RectTransform)_dev.transform,new Vector2(0,steam?-456:-376),new Vector2(512,72));
-                foreach(var graphic in _dev.GetComponentsInChildren<Graphic>())if(!(graphic is TMP_Text))graphic.color=Color.clear;
-                var label=_dev.GetComponentInChildren<TMP_Text>();label.color=UiTheme.TextMid;label.fontSize=20;
-                _dev.targetGraphic=label;
-            }
+            float height=steam && DevDoors?360:304;
+            _signIn.sizeDelta=new Vector2(420,height);
+            _signIn.localScale=Vector3.one;
+            var header=UiTheme.Flat(_signIn,"LoginHeader",new Color(.055f,.065f,.068f));
+            header.raycastTarget=false;
+            Anchor(header.rectTransform,Vector2.zero,new Vector2(420,60));
+            header.transform.SetAsFirstSibling();
+            heading.text="REIGN OF IDLERS";
+            heading.characterSpacing=3;
+            Anchor(heading.rectTransform,new Vector2(-12,-12),new Vector2(320,36));
+            Anchor(fieldLabel.rectTransform,new Vector2(0,-78),new Vector2(364,24));
+            Anchor((RectTransform)_nameField.transform,new Vector2(0,-106),new Vector2(364,46));
+            Anchor((RectTransform)_play.transform,new Vector2(0,-174),new Vector2(364,44));
+            if(_routeSwap!=null)Anchor((RectTransform)_routeSwap.transform,new Vector2(0,-230),new Vector2(364,44));
+            if(_dev!=null)Anchor((RectTransform)_dev.transform,new Vector2(0,steam?-286:-230),new Vector2(364,44));
+            var close=(RectTransform)_accountBack.transform;
+            close.anchorMin=close.anchorMax=close.pivot=Vector2.one;
+            close.anchoredPosition=new Vector2(-6,-6);close.sizeDelta=new Vector2(48,48);
         }
 
         static void FantasyDiamond(RectTransform parent,Vector2 position,float size,Color color)
@@ -174,6 +158,7 @@ namespace Roi.UI
         void ReturnToLanding()
         {
             if (_busy) return;
+            _version.gameObject.SetActive(true);
             if (_popup != null) { _popup.gameObject.SetActive(false); Destroy(_popup.gameObject); _popup=null; }
             _popupOrder.Clear();
             _signIn.gameObject.SetActive(false); _creation.gameObject.SetActive(false);
@@ -192,9 +177,9 @@ namespace Roi.UI
             var panel=UiTheme.Box(_root,"TitlePopup",UiTheme.Surface,12);
             StyleTitleDialog(panel);
             _popup=panel.rectTransform;
-            Pin(_popup,Vector2.zero,new Vector2(780,560));
+            Pin(_popup,Vector2.zero,new Vector2(680,400));
             var head=UiTheme.Label(_popup,"Heading",Loc.Get(key),30,UiTheme.TextHigh,TextAlignmentOptions.Center);
-            Anchor(head.rectTransform,new Vector2(0,-24),new Vector2(570,56));
+            Anchor(head.rectTransform,new Vector2(-34,-16),new Vector2(548,56));
             AddClose(_popup,_popupOrder);
             SetStatus("");
             FocusFirst(_popupOrder);
@@ -206,9 +191,9 @@ namespace Roi.UI
             var button=QuietButton(parent,"Close", "",ReturnToLanding);
             var rt=(RectTransform)button.transform;
             rt.anchorMin=rt.anchorMax=rt.pivot=Vector2.one;
-            rt.anchoredPosition=new Vector2(-4,-4); rt.sizeDelta=new Vector2(88,88);
+            rt.anchoredPosition=new Vector2(-12,-16); rt.sizeDelta=new Vector2(48,48);
             var icon=TitleGlyph.Add(button.transform,TitleGlyph.Symbol.Close);
-            Pin(icon.rectTransform,Vector2.zero,new Vector2(40,40));
+            Pin(icon.rectTransform,Vector2.zero,new Vector2(28,28));
             button.targetGraphic=icon;
             RegisterFocus(order,button);
             return button;
@@ -218,44 +203,38 @@ namespace Roi.UI
         {
             var t=UiTheme.Label(_popup,"Body",text,23,UiTheme.TextMid,TextAlignmentOptions.TopLeft);
             t.textWrappingMode=TextWrappingModes.Normal; t.overflowMode=TextOverflowModes.Overflow;
-            Anchor(t.rectTransform,new Vector2(0,-top),new Vector2(680,height));
+            Anchor(t.rectTransform,new Vector2(0,-top),new Vector2(616,height));
             return t;
         }
 
         void OpenNews()
         {
             if(OpenPopup("UI_TITLE_NEWS")==null)return;
-            PopupText(Loc.Fmt("UI_TITLE_RELEASE",Roi.Sim.SimSession.SimVersion()),110,60);
-            PopupText(Loc.Get("UI_TITLE_RELEASE_NOTES"),190,280);
+            PopupText(Loc.Fmt("UI_TITLE_RELEASE",Roi.Sim.SimSession.SimVersion()),112,32);
+            PopupText(Loc.Get("UI_TITLE_RELEASE_NOTES"),160,200);
         }
 
         void OpenSupport()
         {
             if(OpenPopup("UI_TITLE_SUPPORT")==null)return;
-            PopupText(Loc.Get("UI_TITLE_HELP_BODY"),105,260);
+            PopupText(Loc.Get("UI_TITLE_HELP_BODY"),112,180);
             Button copy=null;
-            copy=MakePrimary(_popup,Loc.Get("UI_TITLE_COPY_DETAILS"),680,88,()=> {
+            copy=MakePrimary(_popup,Loc.Get("UI_TITLE_COPY_DETAILS"),280,44,()=> {
                 GUIUtility.systemCopyBuffer="Reign of Idlers\nVersion: "+Roi.Sim.SimSession.SimVersion()+
                     "\nServer: "+new Uri(_serverEndpoint).Host+"\nPlatform: "+Application.platform;
                 SetLabel(copy,Loc.Get("UI_TITLE_COPIED"));
             });
             copy.gameObject.name="CopyDiagnostics";
-            Anchor((RectTransform)copy.transform,new Vector2(0,-418),new Vector2(680,88));
+            Anchor((RectTransform)copy.transform,new Vector2(0,-320),new Vector2(280,44));
             RegisterFocus(_popupOrder,copy);
         }
 
-        void OpenSettings()
-        {
-            if(OpenPopup("UI_TITLE_SETTINGS")==null)return;
-            SettingsRow("UI_TITLE_MUSIC","roi.opt.music",70,new[]{0,50,100},new[]{"0%","50%","100%"},120);
-            SettingsRow("UI_TITLE_SOUND","roi.opt.sfx",80,new[]{0,50,100},new[]{"0%","50%","100%"},250);
-            SettingsRow("UI_TITLE_FRAME_RATE","roi.opt.framecap",60,new[]{30,60,120},new[]{"30","60","120"},380);
-        }
+        void OpenSettings() => OpenSettingsPage(0);
 
         void SettingsRow(string key,string preference,int fallback,int[] values,string[] labels,float top)
         {
             var text=UiTheme.Label(_popup,key,Loc.Get(key),23,UiTheme.TextHigh,TextAlignmentOptions.Left);
-            Anchor(text.rectTransform,new Vector2(-233,-top),new Vector2(214,88));
+            Anchor(text.rectTransform,new Vector2(-220,-top),new Vector2(176,44));
             var buttons=new List<Button>();
             for(int i=0;i<values.Length;i++)
             {
@@ -268,7 +247,7 @@ namespace Roi.UI
                         k==index?UiTheme.Accent:UiTheme.TextMid;
                 });
                 var rt=(RectTransform)button.transform;
-                Anchor(rt,new Vector2(-54+i*142,-top),new Vector2(132,88));
+                Anchor(rt,new Vector2(-70+i*118,-top),new Vector2(108,44));
                 var plate=UiTheme.Box(rt,"Plate",UiTheme.Surface,8);
                 Stretch(plate.rectTransform); plate.raycastTarget=false; plate.transform.SetAsFirstSibling();
                 UiTheme.Border(rt,UiTheme.LineStrong);
@@ -288,9 +267,9 @@ namespace Roi.UI
             Canvas.ForceUpdateCanvases();
             float w=_root.rect.width,h=_root.rect.height;
             _rail.anchorMin=_rail.anchorMax=_rail.pivot=new Vector2(1,1);
-            _rail.anchoredPosition=new Vector2(-24,-30);
-            Pin(_logo,new Vector2(-12,h*.30f),new Vector2(Mathf.Min(960,w-240),150));
-            Pin((RectTransform)_tapCatcher.transform,new Vector2(0,-h*.325f),new Vector2(560,100));
+            _rail.anchoredPosition=new Vector2(-8,-h*.09f);
+            _logo.anchorMin=_logo.anchorMax=_logo.pivot=new Vector2(0,1); _logo.anchoredPosition=new Vector2(22,-22); _logo.sizeDelta=new Vector2(84,36);
+            Pin((RectTransform)_tapCatcher.transform,new Vector2(0,-h*.5f+h*.043f),new Vector2(w*.77f,38));
             if(_backdrop!=null && _backdrop.texture!=null)
             {
                 float imageAspect=(float)_backdrop.texture.width/_backdrop.texture.height;

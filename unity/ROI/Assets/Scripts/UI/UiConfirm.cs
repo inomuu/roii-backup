@@ -110,6 +110,8 @@ namespace Roi.UI
             pr.localScale=Vector3.one*Mathf.Min(1,Mathf.Min((available.x-32)/PanelW,(available.y-32)/y));
             if(cancel!=null){cancel.navigation=new Navigation{mode=Navigation.Mode.Explicit,selectOnRight=ok};ok.navigation=new Navigation{mode=Navigation.Mode.Explicit,selectOnLeft=cancel};}
             EventSystem.current?.SetSelectedGameObject(cancel!=null?cancel.gameObject:ok.gameObject);
+            DialogSurface.CloseIcon(pr,Close);
+            t.margin=new Vector4(0,0,36,0);
             UiPageTransition.Play(pr);
         }
 

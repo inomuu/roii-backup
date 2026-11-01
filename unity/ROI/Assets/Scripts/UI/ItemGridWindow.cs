@@ -29,6 +29,8 @@ namespace Roi.UI
         TextMeshProUGUI _count, _note, _empty;
         RectTransform _grid, _gridHost, _emptyPanel;
         float _gridWidth;
+        GameObject _stashNotice;
+        UnityEngine.UI.Button _sort;
         int _category; bool _reverse;
         ShopSelectionArc _categoryArc;
         TextMeshProUGUI _detailText,_detailName,_detailGrade;
@@ -128,16 +130,17 @@ namespace Roi.UI
             _detailText=UiTheme.Label(detailContent,"Description",Loc.Get("UI_COLLECTION_SELECT"),UiTheme.BodySize,UiTheme.TextHigh,TextAlignmentOptions.TopLeft);
             _detailText.textWrappingMode=TextWrappingModes.Normal;_detailText.rectTransform.anchorMin=new Vector2(0,1);_detailText.rectTransform.anchorMax=Vector2.one;_detailText.rectTransform.pivot=new Vector2(.5f,1);_detailText.rectTransform.sizeDelta=new Vector2(0,120);UiScroll.Fit(detailContent,120);
             var sort=HudBar.MakeGhostButton(body,_isStash?Loc.Get("UI_COLLECTION_GRADE")+" ↕":"↕",_isStash?200:44,UiLayout.Touch,()=>{_reverse=!_reverse;LayoutGrid(_items.Length);});
+            _sort=sort;
             var sortRect=(RectTransform)sort.transform;sortRect.anchorMin=sortRect.anchorMax=new Vector2(.60f,0);sortRect.anchoredPosition=new Vector2(0,112);if(_isStash){sortRect.anchorMin=sortRect.anchorMax=new Vector2(.10f,0);sortRect.pivot=new Vector2(0,0);sortRect.anchoredPosition=new Vector2(0,24);}
             if(_canAct){var tools=HudBar.MakeGhostButton(body,Loc.Get("UI_BLACKSMITH"),150,UiLayout.Touch,()=>Object.FindFirstObjectByType<HudBar>()?.Floating.Open());var tr=(RectTransform)tools.transform;tr.anchorMin=tr.anchorMax=new Vector2(1,1);tr.pivot=new Vector2(1,1);tr.anchoredPosition=new Vector2(-24,-4);}
 
 
-            var emptyCard = UiTheme.Box(body, "EmptyState", UiTheme.Surface);
+            var emptyCard = UiTheme.Box(body, "EmptyState", Color.clear);
             _emptyPanel = emptyCard.rectTransform;
             _emptyPanel.anchorMin = new Vector2(.14f,.5f); _emptyPanel.anchorMax = new Vector2(.63f,.5f);
             _emptyPanel.offsetMin = new Vector2(0,-130); _emptyPanel.offsetMax = new Vector2(0,130);
-            UiTheme.Border(_emptyPanel, UiTheme.LineStrong);
-            FuturistChrome.Attach(_emptyPanel);
+            emptyCard.raycastTarget = false;
+            
             _empty = UiTheme.Label(_emptyPanel, "Empty", "", UiTheme.BodySize,
                                    UiTheme.TextLow, TextAlignmentOptions.Center);
             var er = _empty.rectTransform;
@@ -216,6 +219,7 @@ namespace Roi.UI
             // Render owned items only. Capacity stays in the counter; empty space is not content.
             int total = items.Length;
             if (total == 0) { ShowEmpty(Loc.Get("UI_GRID_EMPTY_TITLE") + "\n<size=14>" + Loc.Get(_isStash ? "UI_STASH_EMPTY_HINT" : _carrier!=""?"UI_UX_REGALIA_HINT":"UI_GRID_EMPTY_HINT") + "</size>"); return; }
+            SetStashEmpty(false);
             _empty.gameObject.SetActive(false);
             _emptyPanel.gameObject.SetActive(false);
             _gridHost.gameObject.SetActive(true);
@@ -231,6 +235,20 @@ namespace Roi.UI
             Rebuild(items, total);
         }
 
+        void SetStashEmpty(bool empty)
+        {
+            if(!_isStash)return;
+            foreach(var name in new[]{"InspectorDivider","ItemName","SelectedGrade","SelectedArtwork","SelectedRarityBand","ItemDetails"})
+                transform.Find(name)?.gameObject.SetActive(!empty);
+            if(_sort!=null)_sort.gameObject.SetActive(!empty);
+            if(_note!=null)_note.gameObject.SetActive(!empty);
+            if(_move!=null)_move.gameObject.SetActive(!empty && _sel>=0);
+            if(empty && _stashNotice==null){
+                _stashNotice=MenuNotice.Create((RectTransform)transform,"Stash",Loc.Get("UI_GRID_EMPTY_TITLE"),Loc.Get("UI_STASH_EMPTY_HINT"),iconSize:96);
+                MenuNotice.Center(_stashNotice);
+            }
+            if(_stashNotice!=null)_stashNotice.SetActive(empty);
+        }
         void ShowEmpty(string message)
         {
             _empty.text = message;
@@ -238,6 +256,7 @@ namespace Roi.UI
             _emptyPanel.gameObject.SetActive(true);
             _gridHost.gameObject.SetActive(false);
             if(_emptyAction!=null)_emptyAction.gameObject.SetActive(_isStash||_carrier!="");
+            if(_isStash){_sel=-1;SetStashEmpty(true);_emptyPanel.gameObject.SetActive(false);}
             _fingerprint = "";
         }
 

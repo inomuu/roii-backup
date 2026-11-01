@@ -128,7 +128,9 @@ namespace Roi.UI
             lbl.characterSpacing = 2f;
 
             var bg = UiTheme.Box(brt, "Bg", has ? UiTheme.Surface : new Color(0.031f, 0.033f, 0.045f, 1f), 4);
+            bg.sprite = UiTheme.ItemCardFill; // WuWa idiom: chamfered cell, matches every other item slot
             var border = UiTheme.Border(bg.rectTransform, has ? RarityLine(item) : UiTheme.Line, 4);
+            border.sprite = UiTheme.ItemCardFrame;
             var sr = bg.rectTransform;
             sr.anchorMin = sr.anchorMax = new Vector2(0.5f, 1f);
             sr.pivot = new Vector2(0.5f, 1f);

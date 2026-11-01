@@ -23,7 +23,7 @@ namespace Roi.UI
             self._button.name="MemberPicker";
             var rt=(RectTransform)self._button.transform;
             rt.anchorMin=rt.anchorMax=new Vector2(1,.5f);rt.pivot=new Vector2(1,.5f);
-            rt.anchoredPosition=new Vector2(-320,0);
+            rt.anchoredPosition=new Vector2(-68,0);
             self._label=self._button.GetComponentInChildren<TextMeshProUGUI>();
             self._label.enableAutoSizing=true;self._label.fontSizeMin=12;self._label.fontSizeMax=15;
             self.Refresh();
@@ -43,7 +43,7 @@ namespace Roi.UI
                 if(member.team=="Player"&&!member.is_pet)_members.Add(member);
             bool visible=_members.Count>1;
             _button.gameObject.SetActive(visible);
-            _title.rectTransform.offsetMax=new Vector2(visible?-516:-320,0);
+            _title.rectTransform.offsetMax=new Vector2(visible?-260:-68,0);
             if(!visible)return;
             var ids=_members.ConvertAll(m=>m.id);
             long selected=PartySelection.Resolve(ids);

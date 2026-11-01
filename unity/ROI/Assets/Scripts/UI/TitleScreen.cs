@@ -51,7 +51,7 @@ namespace Roi.UI
         const int SortOrder = 100;
 
         const float PanelW = 600f, InputH = 88f, ButtonH = 88f;
-        const float CreateW = 760f, CreateH = 460f;
+        const float CreateW = 560f, CreateH = 344f;
 
         static readonly string[] PartyNames =
         {
@@ -145,6 +145,11 @@ namespace Roi.UI
 
         void Build(string accountName, string endpoint)
         {
+            Loc.Language=PlayerPrefs.GetString("roi.opt.language",Loc.Language);
+            AudioListener.volume=PlayerPrefs.GetInt("roi.opt.master",100)/100f;
+            ApplyTitleAudio();
+            if(PlayerPrefs.HasKey("roi.opt.shadows"))QualitySettings.shadows=PlayerPrefs.GetInt("roi.opt.shadows")==0?ShadowQuality.Disable:ShadowQuality.All;
+            if(PlayerPrefs.HasKey("roi.opt.framecap")){QualitySettings.vSyncCount=0;Application.targetFrameRate=PlayerPrefs.GetInt("roi.opt.framecap");}
             EnsureEventSystem();
             var canvasGo = new GameObject("TitleCanvas");
             canvasGo.transform.SetParent(transform, false);
@@ -177,7 +182,7 @@ namespace Roi.UI
             var go = new GameObject("TitleBackdrop", typeof(RectTransform));
             go.transform.SetParent(_root, false);
             _backdrop = go.AddComponent<RawImage>();
-            _backdrop.texture = Resources.Load<Texture2D>("TitleUI/Backdrop");
+            _backdrop.texture = Resources.Load<Texture2D>("TitleUI/Backdrop-Muted-v4");
             _backdrop.color = Color.white;
             _backdrop.raycastTarget = true;
             Stretch(_backdrop.rectTransform);
@@ -193,19 +198,11 @@ namespace Roi.UI
         void BuildLogo()
         {
             _logo=Rect(_root,"GameLogo"); _logoParts.Add(_logo.gameObject);
-            var eyebrow=UiTheme.Label(_logo,"Eyebrow","R O I",17,UiTheme.Accent,TextAlignmentOptions.Center);
-            Pin(eyebrow.rectTransform,new Vector2(0,53),new Vector2(200,30));
-            var title=UiTheme.Label(_logo,"Title","REIGN OF IDLERS",46,UiTheme.TextHigh,TextAlignmentOptions.Center);
-            var titleFont=UiTheme.DisplayFont;
-            if(titleFont!=null)title.font=titleFont;
-            title.characterSpacing=2; title.fontStyle=FontStyles.Normal;
-            title.enableAutoSizing=true; title.fontSizeMin=25; title.fontSizeMax=46;
-            title.textWrappingMode=TextWrappingModes.NoWrap;
-            Stretch(title.rectTransform); title.rectTransform.offsetMin=new Vector2(0,15);
-            title.rectTransform.offsetMax=new Vector2(0,-30);
-            var rule=UiTheme.Flat(_logo,"Rule",new Color(.72f,.60f,.36f,.65f)); rule.raycastTarget=false;
-            Pin(rule.rectTransform,new Vector2(0,-44),new Vector2(410,1));
-            TitleOrnament(_logo,"TitleSeal",HomeCelestialArt.Motif.Rule,new Vector2(0,-122),new Vector2(420,30));
+            var title=UiTheme.Label(_logo,"Title","REIGN OF\nIDLERS",14,UiTheme.TextHigh,TextAlignmentOptions.Center);
+            if(UiTheme.DisplayFont!=null)title.font=UiTheme.DisplayFont;
+            title.characterSpacing=0;
+            title.fontStyle=FontStyles.Bold;
+            Stretch(title.rectTransform);
         }
 
         void BuildTapGate()
@@ -213,19 +210,26 @@ namespace Roi.UI
             _landing=Rect(_root,"Landing"); Stretch(_landing);
             _tapCatcher=QuietButton(_landing,"TapGate",Loc.Get("UI_TITLE_START_GAME"),OpenSignIn);
             _tapLabel=_tapCatcher.GetComponentInChildren<TextMeshProUGUI>();
-            _tapLabel.fontSize=42;
-            var glow=UiTheme.Flat(_tapCatcher.transform,"StartBacking",UiTheme.WithAlpha(UiTheme.FramePrimary,.94f));
-            glow.raycastTarget=false; glow.transform.SetAsFirstSibling();
-            Pin(glow.rectTransform,Vector2.zero,new Vector2(560,76));
-            TitleOrnament(_tapCatcher.transform,"StartFrame",HomeCelestialArt.Motif.BattleFrame,Vector2.zero,new Vector2(560,100));
-            Stretch((RectTransform)_tapCatcher.transform.Find("StartFrame"));
-            var rule=UiTheme.Flat(_tapCatcher.transform,"StartRule",new Color(.75f,.64f,.4f,.75f));
-            rule.raycastTarget=false;
-            Pin(rule.rectTransform,new Vector2(0,-42),new Vector2(370,1));
-            var diamond=UiTheme.Flat(_tapCatcher.transform,"Diamond",UiTheme.Accent);
-            diamond.raycastTarget=false;
-            Pin(diamond.rectTransform,new Vector2(0,-42),new Vector2(5,5));
-            diamond.rectTransform.localEulerAngles=new Vector3(0,0,45);
+            _tapLabel.fontSize=22;
+            _tapLabel.color=new Color(.94f,.98f,.97f,1);
+            // All decoration shares the button centre and symmetric bounds.
+            var backing=Rect(_tapCatcher.transform,"StartBacking").gameObject.AddComponent<TitleEdgeFade>();
+            backing.color=new Color(.14f,.16f,.17f,.5f);
+            backing.raycastTarget=false; backing.transform.SetAsFirstSibling();
+            Stretch(backing.rectTransform);
+            Pin(_tapLabel.rectTransform,Vector2.zero,new Vector2(480,64));
+            _tapLabel.alignment=TextAlignmentOptions.Midline;
+            foreach(float y in new[]{-18f,18f}) {
+                var line=Rect(_tapCatcher.transform,y>0?"StartTop":"StartRule").gameObject.AddComponent<TitleEdgeFade>();
+                line.color=new Color(.72f,.76f,.74f,.55f);
+                line.raycastTarget=false;
+                var lr=line.rectTransform; lr.anchorMin=new Vector2(0,.5f); lr.anchorMax=new Vector2(1,.5f); lr.sizeDelta=new Vector2(0,1.5f); lr.anchoredPosition=new Vector2(0,y);
+            }
+            var mark=TitleGlyph.Add(_tapCatcher.transform,TitleGlyph.Symbol.Star);
+            mark.color=new Color(.88f,.91f,.82f,1);
+            Pin(mark.rectTransform,new Vector2(-155,0),new Vector2(20,20));
+            var twin=TitleGlyph.Add(_tapCatcher.transform,TitleGlyph.Symbol.Star);twin.color=mark.color;
+            Pin(twin.rectTransform,new Vector2(155,0),new Vector2(20,20));
         }
 
         void BuildSignIn(string accountName)
@@ -354,16 +358,18 @@ namespace Roi.UI
         /// database wake-up; without a moving thing the wait reads as a hang.
         void BuildBusyBar()
         {
-            _busyTrack = UiTheme.Flat(_root, "BusyTrack", new Color(1f, 1f, 1f, 0.06f));
+            _busyTrack = UiTheme.Flat(_root, "BusyTrack", new Color(1f, 1f, 1f, 0.18f));
             _busyTrack.raycastTarget = false;
-            Pin(_busyTrack.rectTransform, new Vector2(0f, -276f), new Vector2(PanelW - 48f, 3f));
-            _busyTrack.gameObject.AddComponent<RectMask2D>();
-            _busyFill = UiTheme.Flat(_busyTrack.rectTransform, "Fill", UiTheme.Accent);
+            Pin(_busyTrack.rectTransform, new Vector2(0f, -276f), new Vector2(PanelW - 48f, 2f));
+
+            _busyFill = UiTheme.Flat(_busyTrack.rectTransform, "Fill", Color.white);
             _busyFill.raycastTarget = false;
             var fr = _busyFill.rectTransform;
             fr.anchorMin = new Vector2(0f, 0f); fr.anchorMax = new Vector2(0f, 1f);
             fr.pivot = new Vector2(0f, 0.5f);
             fr.sizeDelta = new Vector2(120f, 0f);
+            var tip=TitleGlyph.Add(_busyFill.transform,TitleGlyph.Symbol.Star);
+            tip.color=Color.white;tip.rectTransform.anchorMin=tip.rectTransform.anchorMax=new Vector2(1,.5f);tip.rectTransform.sizeDelta=new Vector2(24,24);
             _busyTrack.gameObject.SetActive(false);
         }
 
@@ -372,42 +378,43 @@ namespace Roi.UI
             var panel = UiTheme.Box(_root, "Creation", UiTheme.Surface, 10);
             DialogSurface.Apply(panel);
             _creation = panel.rectTransform;
-            Pin(_creation, new Vector2(0f, -40f), new Vector2(CreateW, CreateH));
+            Pin(_creation, Vector2.zero, new Vector2(CreateW, CreateH));
             _creation.gameObject.SetActive(false);
 
-            var head = UiTheme.Caps(_creation, "Head", Loc.Get("UI_TITLE_FOUND_YOUR_PARTY"), UiTheme.TitleSize, UiTheme.TextHigh,
+            var head = UiTheme.Label(_creation, "CreationHeading", Loc.Get("UI_TITLE_FOUND_YOUR_PARTY"), 28f, UiTheme.TextHigh,
                                     TextAlignmentOptions.Center);
-            Anchor(head.rectTransform, new Vector2(0f, -22f), new Vector2(CreateW - 64f, 28f));
+            Anchor(head.rectTransform, new Vector2(0f, -24f), new Vector2(CreateW - 64f, 42f));
 
             var sub = UiTheme.Label(_creation, "Sub",
                                     Loc.Get("UI_TITLE_STARTER_PAIR"),
                                     UiTheme.BodySize, UiTheme.TextMid, TextAlignmentOptions.Center);
-            Anchor(sub.rectTransform, new Vector2(0f, -62f), new Vector2(CreateW - 64f, 24f));
+            Anchor(sub.rectTransform, new Vector2(0f, -70f), new Vector2(CreateW - 64f, 28f));
 
             var pair = UiTheme.Label(_creation, "StarterPair", Loc.Get("UI_TITLE_STARTER_NAMES"), 30f,
                 UiTheme.TextHigh, TextAlignmentOptions.Center);
-            Anchor(pair.rectTransform, new Vector2(0f, -132f), new Vector2(CreateW - 64f, 50f));
+            Anchor(pair.rectTransform, new Vector2(0f, -108f), new Vector2(CreateW - 64f, 42f));
 
             var partyLabel = UiTheme.Label(_creation, "PartyLabel", Loc.Get("UI_TITLE_PARTY_NAME"),
                 UiTheme.BodySize, UiTheme.TextMid, TextAlignmentOptions.Left);
-            Anchor(partyLabel.rectTransform, new Vector2(-195f, -294f), new Vector2(250f, 22f));
-            _partyField = MakeInput(_creation, Loc.Get("UI_TITLE_PARTY_NAME"), "", 250f, InputH);
-            Anchor(_partyField.GetComponent<RectTransform>(), new Vector2(-195f, -324f),
-                   new Vector2(250f, InputH));
-            _roll = HudBar.MakeGhostButton(_creation, Loc.Get("UI_TITLE_RANDOM"), 88f, InputH,
+            Anchor(partyLabel.rectTransform, new Vector2(0f, -170f), new Vector2(CreateW - 64f, 22f));
+            _partyField = MakeInput(_creation, Loc.Get("UI_TITLE_PARTY_NAME"), "", 374f, 48f);
+            Anchor(_partyField.GetComponent<RectTransform>(), new Vector2(-61f, -200f),
+                   new Vector2(374f, 48f));
+            _roll = HudBar.MakeGhostButton(_creation, Loc.Get("UI_TITLE_RANDOM"), 110f, 48f,
                 () => { if (!_busy && _partyField != null) _partyField.text = PartyNames[UnityEngine.Random.Range(0, PartyNames.Length)]; },
                 UiTheme.CaptionSize);
-            Anchor((RectTransform)_roll.transform, new Vector2(-16f, -324f), new Vector2(88f, InputH));
+            Anchor((RectTransform)_roll.transform, new Vector2(193f, -200f), new Vector2(110f, 48f));
 
-            _begin = MakePrimary(_creation, Loc.Get("UI_TITLE_BEGIN"), 290f, ButtonH, () =>
+            _begin = MakePrimary(_creation, Loc.Get("UI_TITLE_BEGIN"), 496f, 48f, () =>
             {
                 if (_busy) return;
                 var party = _partyField != null ? _partyField.text.Trim() : "";
                 if (string.IsNullOrEmpty(party)) { SetStatus(Loc.Get("UI_TITLE_NEED_PARTY_NAME")); _partyField.Select(); return; }
                 CreatePressed?.Invoke("seraphine", party);
             });
-            Anchor((RectTransform)_begin.transform, new Vector2(195f, -324f), new Vector2(290f, ButtonH));
-            RegisterFocus(_creationOrder, _partyField, _roll, _begin);
+            Anchor((RectTransform)_begin.transform, new Vector2(0f, -272f), new Vector2(496f, 48f));
+            var closeCreation=DialogSurface.CloseIcon(_creation,ReturnToLanding);
+            RegisterFocus(_creationOrder, _partyField, _roll, _begin, closeCreation);
             _partyField.onSubmit.AddListener(_ => { if (!_busy) _begin.onClick.Invoke(); });
         }
 
@@ -429,10 +436,10 @@ namespace Roi.UI
                                      Roi.Sim.SimSession.SimVersion(), 16f,
                                      UiTheme.TextLow, TextAlignmentOptions.Left);
             var vr = _version.rectTransform;
-            vr.anchorMin = vr.anchorMax = new Vector2(0f, 0f);
-            vr.pivot = new Vector2(0f, 0f);
-            vr.anchoredPosition = new Vector2(24f, 20f);
-            vr.sizeDelta = new Vector2(400f, 24f);
+            vr.anchorMin = vr.anchorMax = new Vector2(1f, 1f);
+            vr.pivot = new Vector2(1f, 1f);
+            vr.anchoredPosition = new Vector2(-28f, -20f);
+            vr.sizeDelta = new Vector2(400f, 24f); _version.alignment=TextAlignmentOptions.Right;
 
 
         }

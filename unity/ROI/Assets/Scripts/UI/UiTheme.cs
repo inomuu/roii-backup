@@ -62,10 +62,10 @@ namespace Roi.UI
 
         // --- palette ------------------------------------------------------------------------
         /// The window ground. Near-black with a blue cast — a neutral grey reads as unfinished.
-        public static readonly Color Panel = new Color(.045f,.049f,.058f,1f);
+        public static readonly Color Panel = new Color(.058f,.061f,.071f,1f);
         /// A raised surface: a title bar, a filled slot, a button at rest.
-        public static readonly Color Surface = new Color(.095f,.102f,.115f,1f);
-        public static readonly Color SurfaceHover = new Color(.16f,.17f,.185f,1f);
+        public static readonly Color Surface = new Color(.105f,.109f,.122f,1f);
+        public static readonly Color SurfaceHover = new Color(.165f,.168f,.18f,1f);
         /// SELECTED — an open window's button, the chosen member tab, the picked equipment slot.
         ///
         /// Deliberately not the accent: a dozen lit buttons would spend the one warm colour
@@ -76,39 +76,44 @@ namespace Roi.UI
         ///
         /// Selection is carried by the ACCENT TICK and the stronger border instead. The fill only
         /// has to separate this cell from its neighbours, and one step is enough to do that.
-        public static readonly Color SurfaceActive = new Color(.205f,.215f,.23f,1f);
+        public static readonly Color SurfaceActive = new Color(.215f,.207f,.185f,1f);
         // One material palette for every mesh-backed menu, dialog, card and action.
-        public static readonly Color FrameTop = new Color(.115f,.125f,.14f,.97f);
-        public static readonly Color FrameBottom = new Color(.065f,.072f,.085f,.97f);
-        public static readonly Color FramePrimary = new Color(.24f,.23f,.19f,1f);
-        public static readonly Color FrameSelected = new Color(.22f,.225f,.235f,1f);
-        public static readonly Color FrameEdge = new Color(.78f,.79f,.80f,.22f);
-        public static readonly Color FrameRaisedEdge = new Color(.83f,.84f,.85f,.45f);
+        public static readonly Color FrameTop = new Color(.125f,.129f,.142f,.95f);
+        public static readonly Color FrameBottom = new Color(.068f,.070f,.080f,.95f);
+        public static readonly Color FramePrimary = new Color(.93f,.90f,.80f,1f);
+        public static readonly Color FrameSelected = new Color(.24f,.23f,.20f,1f);
+        public static readonly Color FrameEdge = new Color(.86f,.86f,.84f,.20f);
+        public static readonly Color FrameRaisedEdge = new Color(.88f,.87f,.82f,.40f);
         public static Color WithAlpha(Color color,float alpha) { color.a=alpha; return color; }
         /// Borders sit at low alpha. A bright hairline is the cheapest-looking thing in a UI.
-        public static readonly Color Line = new Color(0.74f, 0.78f, 0.79f, 0.12f);
-        public static readonly Color LineStrong = new Color(0.74f, 0.78f, 0.79f, 0.32f);
+        public static readonly Color Line = new Color(0.86f, 0.86f, 0.84f, 0.13f);
+        public static readonly Color LineStrong = new Color(0.86f, 0.86f, 0.84f, 0.30f);
         /// The one warm accent, for the thing that matters on a screen — and nothing else.
-        public static readonly Color Accent = new Color(.88f,.82f,.64f);
-        public static readonly Color TextHigh = new Color(.95f,.95f,.93f);
-        public static readonly Color TextMid = new Color(.79f,.80f,.81f);
+        public static readonly Color Accent = new Color(.93f,.83f,.56f);
+        public static readonly Color TextHigh = new Color(.96f,.96f,.94f);
+        public static readonly Color TextMid = new Color(.78f,.78f,.77f);
         // Muted still means readable: captions and input hints carry information. Keep this
         // above 4.5:1 on Panel, Surface, SurfaceHover and SurfaceActive in the sRGB palette.
-        public static readonly Color TextLow = new Color(.68f,.70f,.73f);
+        public static readonly Color TextLow = new Color(.66f,.66f,.66f);
         /// Behind a modal. Deeper than a dim: it has to read as "the screen is not live".
-        public static readonly Color Scrim = new Color(.015f,.035f,.035f,.78f);
+        public static readonly Color Scrim = new Color(.01f,.01f,.015f,.76f);
 
-        public static readonly Color Header = new Color(.06f,.067f,.08f,.96f);
-        public static readonly Color BackdropTop = new Color(.075f,.085f,.105f,1f);
-        public static readonly Color BackdropBottom = new Color(.17f,.19f,.22f,1f);
+        public static readonly Color Header = new Color(.045f,.047f,.055f,.55f);
+        public static readonly Color BackdropTop = new Color(.085f,.088f,.10f,1f);
+        public static readonly Color BackdropBottom = new Color(.035f,.037f,.045f,1f);
 
         // --- spacing ------------------------------------------------------------------------
         public const float PadLarge = 24f, Pad = 16f, PadSmall = 12f, Gap = 8f;
         public const float TitleBarH = 54f, ButtonH = 40f;
         public const float HoverDuration = 0.09f;
-        public static readonly Color OnAccent = new Color(0.075f, 0.086f, 0.110f);
+        public static readonly Color OnAccent = new Color(0.10f, 0.10f, 0.11f);
+        // WuWa extras: the ivory a confirm button is filled with, the warm glow of a selection,
+        // and the five-step rarity ramp (grey, green, blue, purple, gold).
+        public static readonly Color Ivory = new Color(.93f,.91f,.85f,1f);
+        public static readonly Color IvoryShade = new Color(.80f,.77f,.69f,1f);
+        public static readonly Color AccentGlow = new Color(1f,.90f,.62f,.35f);
         public static readonly Color DisabledCaption = new Color(.80f,.82f,.85f,1);
-        public static readonly Color Warning = new Color(.95f,.61f,.49f,1);
+        public static readonly Color Warning = new Color(.95f,.47f,.42f,1);
         public const float PageDuration=.16f, PageStartAlpha=.72f;
         // Shared interaction colours: selected state is a gold edge, never a pale blue slab.
         public static ColorBlock ButtonColors => new ColorBlock {
@@ -125,19 +130,24 @@ namespace Roi.UI
         // --- shape --------------------------------------------------------------------------
         static Sprite _fill8, _fill4, _frame8, _frame4, _frame2;
         static Sprite _noticePaper, _noticePill;
-        public static Sprite NoticePaper => _noticePaper ? _noticePaper : (_noticePaper=Rounded(16,0));
-        public static Sprite NoticePill => _noticePill ? _noticePill : (_noticePill=Rounded(40,0));
+        static Sprite _itemCardFill, _itemCardFrame;
+        // WuWa idiom: item cells chamfer like every other card/plate in the UI rather than
+        // rounding — the cut corner is the one silhouette this whole UI shares.
+        public static Sprite ItemCardFill => _itemCardFill ??= Chamfer(10,0);
+        public static Sprite ItemCardFrame => _itemCardFrame ??= Chamfer(10,1);
+        public static Sprite NoticePaper => _noticePaper ? _noticePaper : (_noticePaper=Rounded(3,0));
+        public static Sprite NoticePill => _noticePill ? _noticePill : (_noticePill=Rounded(4,0));
 
         /// A filled rounded rect, 9-sliced. `Image.type = Sliced` stretches only the middle, so
         /// one small texture serves a 12 px chip and a 1600 px window at the same corner radius.
         public static Sprite Fill(int radius = 8)
-            => radius >= 8 ? (_fill8 ??= Rounded(8, 0f)) : (_fill4 ??= Rounded(4, 0f));
+            => radius >= 8 ? (_fill8 ??= Rounded(3, 0f)) : (_fill4 ??= Rounded(2, 0f));
 
         /// The same rounded rect as an OUTLINE — a hairline frame, drawn over a fill.
         public static Sprite Frame(int radius = 8, float thickness = 1f)
         {
-            if (thickness >= 2f) return _frame2 ??= Rounded(8, 2f);
-            return radius >= 8 ? (_frame8 ??= Rounded(8, 1f)) : (_frame4 ??= Rounded(4, 1f));
+            if (thickness >= 2f) return _frame2 ??= Rounded(3, 2f);
+            return radius >= 8 ? (_frame8 ??= Rounded(3, 1f)) : (_frame4 ??= Rounded(2, 1f));
         }
 
         /// Builds the 9-slice. `thickness` 0 = solid; > 0 = a ring that many pixels wide.

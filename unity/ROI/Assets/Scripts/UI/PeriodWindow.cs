@@ -84,12 +84,10 @@ namespace Roi.UI
             var net = Roi.Net.OnlineService.Instance;
             if (!net.LoggedIn)
             {
-                _head.text = "";
-                _status.text = "";
-                Clear();
-                var notice=MenuNotice.Create(_content,"Mission",Loc.Get("UI_NOTICE_CONNECTION"),Loc.Get("UI_NOTICE_MISSION"),()=>net.Connect());
-                _built.Add(notice);
-                UiScroll.Fit(_content,348f);
+                BuildLocalBoard();
+                Rebuild();
+                _head.text=Loc.Get("UI_PERIOD_LOCAL_RECORD");
+                _status.text=Loc.Get("UI_PERIOD_LOCAL_REWARDS");
                 return;
             }
             net.Run(net.Client.PeriodState(_period, (ok, json) =>
@@ -99,6 +97,23 @@ namespace Roi.UI
                 Rebuild();
             }));
         }
+
+        // Local development displays the real save's cumulative counters; server period
+        // windows and payouts remain owned by the server.
+        void BuildLocalBoard()
+        {
+            var driver=Object.FindFirstObjectByType<Roi.Sim.SimDriver>();
+            var saved=driver?.Session?.SaveJson();
+            var measures=string.IsNullOrEmpty(saved)?new LocalMeasures():JsonUtility.FromJson<LocalSave>(saved)?.measures??new LocalMeasures();
+            string[] ids={"kills_2500","rooms_10","damage_1m","fuse_3","gem_fuse_1","train_1","spend_gil","soul_node_1"};
+            long[] targets=_period=="daily"?new long[]{2500,10,1000000,3,1,1,10000,1}:new long[]{12500,50,5000000,15,1,5,50000,5};
+            long[] progress={measures.kills,measures.rooms_cleared,measures.damage_dealt,measures.fusions,measures.gem_fusions,measures.training_levels,measures.gil_spent,measures.soul_nodes_allocated};
+            var state=new PeriodState{ok=true,board=new Task[ids.Length],ladder=new Rung[0]};
+            for(int i=0;i<ids.Length;i++)state.board[i]=new Task{id=ids[i],target=targets[i],progress=System.Math.Min(targets[i],progress[i]),done=progress[i]>=targets[i]};
+            _json=JsonUtility.ToJson(state);
+        }
+        [System.Serializable] class LocalSave { public LocalMeasures measures; }
+        [System.Serializable] class LocalMeasures { public long kills,rooms_cleared,damage_dealt,fusions,gem_fusions,training_levels,gil_spent,soul_nodes_allocated; }
 
         void Rebuild()
         {
@@ -116,18 +131,20 @@ namespace Roi.UI
             
             foreach (var t in st.board ?? new Task[0])
             {
-                var row = UiTheme.Box(_content, "T_" + t.id, new Color(.70f,.74f,.74f,.95f));
-                UiTheme.Border(row.rectTransform,new Color(.85f,.9f,.89f,.4f));
+                var row = UiTheme.Box(_content, "T_" + t.id, UiTheme.Surface);
+                row.sprite=UiTheme.CutFill(8);
+                UiTheme.Border(row.rectTransform,UiTheme.Line);
                 Place(row.rectTransform,y,RowH);_built.Add(row.gameObject);
                 RewardArt(row.transform,.015f,.08f,.105f,.92f);
-                var name=ExemplarUi.Text(row.transform,"Task",TaskName(t.id),.16f,.42f,.84f,.88f,UiTheme.BodySize,new Color(.07f,.12f,.13f));
+                var name=ExemplarUi.Text(row.transform,"Task",TaskName(t.id),.16f,.42f,.84f,.88f,UiTheme.BodySize,UiTheme.TextHigh);
                 name.fontStyle=FontStyles.Bold;name.enableAutoSizing=true;name.fontSizeMin=12;name.fontSizeMax=UiTheme.BodySize;
-                ExemplarUi.Text(row.transform,"Progress",$"{t.progress:N0} / {t.target:N0}",.16f,.12f,.84f,.41f,UiTheme.CaptionSize,new Color(.16f,.23f,.24f));
+                ExemplarUi.Text(row.transform,"Progress",$"{t.progress:N0} / {t.target:N0}",.16f,.12f,.84f,.41f,UiTheme.CaptionSize,UiTheme.TextLow);
                 ActivityStatus.Add(row.transform,.87f,.15f,.97f,.85f,t.done,t.done);
                 y += RowH + Gap;
             }
 
             UiScroll.Fit(_content,y+UiTheme.Pad);
+            if(!Roi.Net.OnlineService.Instance.LoggedIn)return;
             var rungs=st.ladder??new Rung[0];
             var track=ExemplarUi.Panel(_footer,"Track",.04f,.56f,.94f,.575f,UiTheme.LineStrong);_built.Add(track.gameObject);
             int max=rungs.Length>0?rungs[rungs.Length-1].points:0;
@@ -135,7 +152,7 @@ namespace Roi.UI
             for(int i=0;i<rungs.Length;i++){
                 var rung=rungs[i];float x=.04f+.90f*(max>0?rung.points/(float)max:0);
                 var node=ExemplarUi.Rect(_footer,"Milestone"+rung.points,x-.055f,.08f,x+.055f,.94f);_built.Add(node.gameObject);
-                var disk=ExemplarUi.Panel(node,"RewardDisk",.17f,.43f,.83f,.93f,new Color(.08f,.14f,.16f,.9f));disk.sprite=UiTheme.NoticePill;var circle=disk.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();circle.aspectMode=UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;circle.aspectRatio=1;
+                var disk=ExemplarUi.Panel(node,"RewardDisk",.17f,.43f,.83f,.93f,UiTheme.WithAlpha(UiTheme.Panel,.9f));disk.sprite=UiTheme.NoticePill;var circle=disk.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();circle.aspectMode=UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;circle.aspectRatio=1;
                 ActivityStatus.Add(node,.15f,.42f,.85f,.94f,rung.claimed,rung.reached);
                 var hit=node.gameObject.AddComponent<UnityEngine.UI.Button>();hit.targetGraphic=disk;
                 hit.interactable=rung.reached&&!rung.claimed;hit.onClick.AddListener(Claim);
@@ -199,6 +216,7 @@ namespace Roi.UI
             "rooms_10" => "Clear rooms",
             "damage_1m" => "Deal damage",
             "fuse_3" => "Fuse gear",
+            "gem_fuse_1" => Loc.Get("UI_PERIOD_GEM_FUSE"),
             "card_feed_1" => "Feed a card to gear",
             "train_1" => "Train a stat",
             "spend_gil" => "Spend Gil",
@@ -248,7 +266,7 @@ namespace Roi.UI
 
         void Clear()
         {
-            foreach (var go in _built) Destroy(go);
+            foreach (var go in _built) {go.SetActive(false);Destroy(go); }
             _built.Clear();
         }
 
@@ -276,7 +294,7 @@ namespace Roi.UI
         {
             var rt=ExemplarUi.Rect(parent,"ActivityStatus",x,y,r,t);
             var graphic=rt.gameObject.AddComponent<ActivityStatus>();graphic._done=done;graphic._ready=ready;
-            graphic.color=parent.name.StartsWith("Milestone") ? UiTheme.TextHigh : (done||ready?new Color(.27f,.48f,.45f):new Color(.43f,.52f,.52f));graphic.raycastTarget=false;
+            graphic.color=parent.name.StartsWith("Milestone") ? UiTheme.TextHigh : (done||ready?UiTheme.Accent:UiTheme.TextLow);graphic.raycastTarget=false;
         }
         protected override void OnPopulateMesh(UnityEngine.UI.VertexHelper vh)
         {
@@ -303,6 +321,9 @@ namespace Roi.UI {
  [RequireComponent(typeof(CanvasRenderer))]
  public sealed class ActivityBackdrop : UnityEngine.UI.MaskableGraphic {
   public static void Add(RectTransform parent){var go=new GameObject("ActivityAtmosphere",typeof(RectTransform));go.transform.SetParent(parent,false);go.transform.SetAsFirstSibling();var g=go.AddComponent<ActivityBackdrop>();g.raycastTarget=false;var r=g.rectTransform;r.anchorMin=Vector2.zero;r.anchorMax=Vector2.one;r.offsetMin=r.offsetMax=Vector2.zero;}
-  protected override void OnPopulateMesh(UnityEngine.UI.VertexHelper vh){vh.Clear();var r=rectTransform.rect;vh.AddVert(new Vector2(r.xMin,r.yMin),new Color(.42f,.59f,.65f),Vector2.zero);vh.AddVert(new Vector2(r.xMin,r.yMax),new Color(.09f,.22f,.27f),Vector2.up);vh.AddVert(new Vector2(r.xMax,r.yMax),new Color(.09f,.31f,.35f),Vector2.one);vh.AddVert(new Vector2(r.xMax,r.yMin),new Color(.40f,.56f,.61f),Vector2.right);vh.AddTriangle(0,1,2);vh.AddTriangle(0,2,3);}
+  // WuWa idiom: the same charcoal-lit-from-upper-left gradient as RpgBackdrop, not the old teal.
+  protected override void OnPopulateMesh(UnityEngine.UI.VertexHelper vh){vh.Clear();var r=rectTransform.rect;
+   var lit=UiTheme.BackdropTop;var deep=UiTheme.BackdropBottom;var mid=Color.Lerp(lit,deep,.55f);
+   vh.AddVert(new Vector2(r.xMin,r.yMin),mid,Vector2.zero);vh.AddVert(new Vector2(r.xMin,r.yMax),lit,Vector2.up);vh.AddVert(new Vector2(r.xMax,r.yMax),mid,Vector2.one);vh.AddVert(new Vector2(r.xMax,r.yMin),deep,Vector2.right);vh.AddTriangle(0,1,2);vh.AddTriangle(0,2,3);}
  }
 }

@@ -10,7 +10,7 @@ public static class ClearReferenceCapture
 {
     public static void Run()
     {
-        string folder=Path.GetFullPath(Path.Combine(Application.dataPath,"../../Captures/clear-reference"));
+        string folder="D:/roii/ui-review-20261030/clear-reference";
         Directory.CreateDirectory(folder);
         var host=new GameObject("Clear reference capture");
         var rt=new RenderTexture(1440,810,24);

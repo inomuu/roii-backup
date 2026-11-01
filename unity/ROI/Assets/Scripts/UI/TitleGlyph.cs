@@ -7,7 +7,7 @@ namespace Roi.UI
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class TitleGlyph : MaskableGraphic
     {
-        public enum Symbol { Settings, News, Support, Account, Globe, Chevron, Close, Bag, Book, Shop, Star, Mail, Party, Flag }
+        public enum Symbol { Settings, News, Support, Account, Globe, Chevron, Close, Bag, Book, Shop, Star, Mail, Party, Flag, Exit, Tools }
         public Symbol Kind;
         public bool Ring;
         public static TitleGlyph Add(Transform parent, Symbol kind, bool ring = false)
@@ -25,6 +25,13 @@ namespace Roi.UI
             if (Ring) Arc(vh, Vector2.zero, 29, 29, 0, 360, .8f);
             switch (Kind)
             {
+                case Symbol.Exit:
+                    Path(vh,new Vector2(0,19),new Vector2(-18,19),new Vector2(-18,-19),new Vector2(0,-19),new Vector2(0,-10));
+                    Path(vh,new Vector2(-6,0),new Vector2(21,0),new Vector2(11,10));Path(vh,new Vector2(21,0),new Vector2(11,-10));break;
+                case Symbol.Tools:
+                    Path(vh,new Vector2(-18,-18),new Vector2(12,12),new Vector2(18,12),new Vector2(22,19));
+                    Path(vh,new Vector2(12,12),new Vector2(10,18),new Vector2(13,23));
+                    Path(vh,new Vector2(-19,19),new Vector2(19,-19));Arc(vh,new Vector2(-16,16),5,5,0,360);break;
                 case Symbol.Bag:
                     Path(vh,new Vector2(-16,-16),new Vector2(-14,9),new Vector2(14,9),new Vector2(16,-16),new Vector2(-16,-16));
                     Arc(vh,new Vector2(0,9),7,8,0,180);break;
@@ -78,8 +85,7 @@ namespace Roi.UI
                     Path(vh,new Vector2(-12,5),new Vector2(0,-7),new Vector2(12,5));
                     break;
                 case Symbol.Close:
-                    Line(vh,new Vector2(-10,-10),new Vector2(10,10));
-                    Line(vh,new Vector2(-10,10),new Vector2(10,-10));
+                    Path(vh,new Vector2(-20,-20),new Vector2(-3,-7),new Vector2(3,-7),new Vector2(20,-20),new Vector2(7,-3),new Vector2(7,3),new Vector2(20,20),new Vector2(3,7),new Vector2(-3,7),new Vector2(-20,20),new Vector2(-7,3),new Vector2(-7,-3),new Vector2(-20,-20));
                     break;
             }
         }

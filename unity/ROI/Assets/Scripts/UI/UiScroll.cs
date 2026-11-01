@@ -145,6 +145,11 @@ namespace Roi.UI
 
         public void OnPointerEnter(PointerEventData e) { _hover = true; Paint(); }
         public void OnPointerExit(PointerEventData e) { _hover = false; Paint(); }
-        public void OnPointerClick(PointerEventData e) => _onClick?.Invoke();
+        public void OnPointerClick(PointerEventData e)
+        {
+            // Scrolling a list or opening a context menu must not select its row.
+            if (e.button != PointerEventData.InputButton.Left || e.dragging) return;
+            _onClick?.Invoke();
+        }
     }
 }

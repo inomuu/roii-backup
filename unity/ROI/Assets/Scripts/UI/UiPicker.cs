@@ -23,7 +23,7 @@ namespace Roi.UI
             public System.Action onPick;
         }
 
-        const float W = 460f, RowH = 52f, HeadH = 40f, FootH = 52f, MaxRows = 6f;
+        const float W = 460f, RowH = 76f, HeadH = 64f, FootH = 24f, MaxRows = 6f;
 
         static UiPicker _open;
         static int _closedFrame=-1;
@@ -88,7 +88,7 @@ namespace Roi.UI
             var canvas=(RectTransform)GetComponentInParent<Canvas>().transform;
             pr.sizeDelta = new Vector2(Mathf.Min(W,canvas.rect.width-32), Mathf.Min(HeadH + UiTheme.PadSmall + rows * RowH + FootH,canvas.rect.height-32));
 
-            var head = UiTheme.Caps(pr, "Head", title, UiTheme.HeadSize, UiTheme.TextHigh,
+            var head = UiTheme.Label(pr, "Head", title, 24, UiTheme.TextHigh,
                                     TextAlignmentOptions.Left);
             var hr = head.rectTransform;
             hr.anchorMin = new Vector2(0f, 1f); hr.anchorMax = new Vector2(1f, 1f);
@@ -117,9 +117,9 @@ namespace Roi.UI
                 btn.targetGraphic = cell;
                 btn.navigation = new Navigation { mode = Navigation.Mode.None };
                 var colors = btn.colors;
-                colors.normalColor = Color.clear;
-                colors.highlightedColor = new Color(.45f, .49f, .44f, .16f);
-                colors.pressedColor = new Color(.60f, .52f, .32f, .24f);
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(.90f,.94f,.94f,1);
+                colors.pressedColor = new Color(.75f,.82f,.82f,1);
                 colors.selectedColor = colors.highlightedColor;
                 colors.disabledColor = Color.clear;
                 colors.fadeDuration = 0.08f;
@@ -130,7 +130,7 @@ namespace Roi.UI
                 var cr = cell.rectTransform;
                 cr.anchorMin = new Vector2(0f, 1f); cr.anchorMax = new Vector2(1f, 1f);
                 cr.pivot = new Vector2(0.5f, 1f);
-                cr.sizeDelta = new Vector2(0f, RowH - 4f);
+                cr.sizeDelta = new Vector2(0f, RowH - 10f);
                 cr.anchoredPosition = new Vector2(0f, -y);
 
                 var label = UiTheme.Label(cr, "Label", o.label, UiTheme.BodySize, UiTheme.TextHigh,
@@ -138,24 +138,23 @@ namespace Roi.UI
                 var lr = label.rectTransform;
                 lr.anchorMin = Vector2.zero; lr.anchorMax = Vector2.one;
                 lr.offsetMin = new Vector2(UiTheme.Pad, 0f);
-                lr.offsetMax = new Vector2(-UiTheme.Pad, -6f);
+                lr.offsetMax = new Vector2(-UiTheme.Pad, -10f);
 
                 var detail = UiTheme.Label(cr, "Detail", o.detail ?? "", UiTheme.CaptionSize,
                                            UiTheme.TextMid, TextAlignmentOptions.BottomLeft);
                 var dr = detail.rectTransform;
                 dr.anchorMin = Vector2.zero; dr.anchorMax = Vector2.one;
-                dr.offsetMin = new Vector2(UiTheme.Pad, 6f);
+                dr.offsetMin = new Vector2(UiTheme.Pad, 10f);
                 dr.offsetMax = new Vector2(-UiTheme.Pad, 0f);
 
                 y += RowH;
             }
             UiScroll.Fit(content, y);
 
-            var cancel = HudBar.MakeButton(pr, Loc.Get("UI_COMMON_CANCEL"), "", 140f, UiLayout.Touch, Close);
-            var qr = (RectTransform)cancel.transform;
-            qr.anchorMin = qr.anchorMax = new Vector2(1f, 0f);
-            qr.pivot = new Vector2(1f, 0f);
-            qr.anchoredPosition = new Vector2(-UiTheme.PadLarge, UiTheme.Pad);
+            var close = HudBar.MakeGhostButton(pr,"",48,48,Close);close.name="Close";
+            var qr=(RectTransform)close.transform;qr.anchorMin=qr.anchorMax=qr.pivot=Vector2.one;qr.anchoredPosition=new Vector2(-12,-10);
+            var glyph=TitleGlyph.Add(close.transform,TitleGlyph.Symbol.Close);glyph.rectTransform.sizeDelta=new Vector2(26,26);
+
         }
     }
 }

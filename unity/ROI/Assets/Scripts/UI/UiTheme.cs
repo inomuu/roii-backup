@@ -62,10 +62,10 @@ namespace Roi.UI
 
         // --- palette ------------------------------------------------------------------------
         /// The window ground. Near-black with a blue cast — a neutral grey reads as unfinished.
-        public static readonly Color Panel = new Color(.035f,.065f,.080f,1f);
+        public static readonly Color Panel = new Color(.045f,.049f,.058f,1f);
         /// A raised surface: a title bar, a filled slot, a button at rest.
-        public static readonly Color Surface = new Color(.070f,.115f,.135f,1f);
-        public static readonly Color SurfaceHover = new Color(.13f,.21f,.235f,1f);
+        public static readonly Color Surface = new Color(.095f,.102f,.115f,1f);
+        public static readonly Color SurfaceHover = new Color(.16f,.17f,.185f,1f);
         /// SELECTED — an open window's button, the chosen member tab, the picked equipment slot.
         ///
         /// Deliberately not the accent: a dozen lit buttons would spend the one warm colour
@@ -76,40 +76,40 @@ namespace Roi.UI
         ///
         /// Selection is carried by the ACCENT TICK and the stronger border instead. The fill only
         /// has to separate this cell from its neighbours, and one step is enough to do that.
-        public static readonly Color SurfaceActive = new Color(.17f,.26f,.28f,1f);
+        public static readonly Color SurfaceActive = new Color(.205f,.215f,.23f,1f);
         // One material palette for every mesh-backed menu, dialog, card and action.
-        public static readonly Color FrameTop = new Color(.115f,.19f,.215f,.97f);
-        public static readonly Color FrameBottom = new Color(.045f,.085f,.10f,.97f);
-        public static readonly Color FramePrimary = new Color(.22f,.34f,.35f,1f);
-        public static readonly Color FrameSelected = new Color(.18f,.29f,.30f,1f);
-        public static readonly Color FrameEdge = new Color(.57f,.70f,.71f,.28f);
-        public static readonly Color FrameRaisedEdge = new Color(.69f,.81f,.80f,.8f);
+        public static readonly Color FrameTop = new Color(.115f,.125f,.14f,.97f);
+        public static readonly Color FrameBottom = new Color(.065f,.072f,.085f,.97f);
+        public static readonly Color FramePrimary = new Color(.24f,.23f,.19f,1f);
+        public static readonly Color FrameSelected = new Color(.22f,.225f,.235f,1f);
+        public static readonly Color FrameEdge = new Color(.78f,.79f,.80f,.22f);
+        public static readonly Color FrameRaisedEdge = new Color(.83f,.84f,.85f,.45f);
         public static Color WithAlpha(Color color,float alpha) { color.a=alpha; return color; }
         /// Borders sit at low alpha. A bright hairline is the cheapest-looking thing in a UI.
         public static readonly Color Line = new Color(0.74f, 0.78f, 0.79f, 0.12f);
         public static readonly Color LineStrong = new Color(0.74f, 0.78f, 0.79f, 0.32f);
         /// The one warm accent, for the thing that matters on a screen — and nothing else.
-        public static readonly Color Accent = new Color(.91f,.88f,.64f);
-        public static readonly Color TextHigh = new Color(.94f,.965f,.95f);
-        public static readonly Color TextMid = new Color(.75f,.83f,.84f);
+        public static readonly Color Accent = new Color(.88f,.82f,.64f);
+        public static readonly Color TextHigh = new Color(.95f,.95f,.93f);
+        public static readonly Color TextMid = new Color(.79f,.80f,.81f);
         // Muted still means readable: captions and input hints carry information. Keep this
         // above 4.5:1 on Panel, Surface, SurfaceHover and SurfaceActive in the sRGB palette.
-        public static readonly Color TextLow = new Color(.67f,.76f,.78f);
+        public static readonly Color TextLow = new Color(.68f,.70f,.73f);
         /// Behind a modal. Deeper than a dim: it has to read as "the screen is not live".
         public static readonly Color Scrim = new Color(.015f,.035f,.035f,.78f);
 
-        public static readonly Color Header = new Color(.045f,.085f,.105f,.96f);
-        public static readonly Color BackdropTop = new Color(.10f,.09f,.145f,1f);
-        public static readonly Color BackdropBottom = new Color(.24f,.36f,.40f,1f);
+        public static readonly Color Header = new Color(.06f,.067f,.08f,.96f);
+        public static readonly Color BackdropTop = new Color(.075f,.085f,.105f,1f);
+        public static readonly Color BackdropBottom = new Color(.17f,.19f,.22f,1f);
 
         // --- spacing ------------------------------------------------------------------------
         public const float PadLarge = 24f, Pad = 16f, PadSmall = 12f, Gap = 8f;
         public const float TitleBarH = 54f, ButtonH = 40f;
-        public const float HoverDuration = 0.12f;
+        public const float HoverDuration = 0.09f;
         public static readonly Color OnAccent = new Color(0.075f, 0.086f, 0.110f);
         public static readonly Color DisabledCaption = new Color(.80f,.82f,.85f,1);
         public static readonly Color Warning = new Color(.95f,.61f,.49f,1);
-        public const float PageDuration=.20f, PageStartAlpha=.55f;
+        public const float PageDuration=.16f, PageStartAlpha=.72f;
         // Shared interaction colours: selected state is a gold edge, never a pale blue slab.
         public static ColorBlock ButtonColors => new ColorBlock {
             normalColor=Color.white, highlightedColor=new Color(1.15f,1.15f,1.12f),

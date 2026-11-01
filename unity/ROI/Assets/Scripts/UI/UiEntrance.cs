@@ -17,7 +17,7 @@ namespace Roi.UI
         public static bool MotionAllowed => PlayerPrefs.GetInt(ReducedMotionKey, 0) == 0
             && !(Object.FindFirstObjectByType<CompanionWidget>()?.Visible ?? false);
 
-        public static UiEntrance Play(RectTransform target, float delay = 0, float duration = .28f, float distance = 12)
+        public static UiEntrance Play(RectTransform target, float delay = 0, float duration = .20f, float distance = 6)
         {
             var motion = target.GetComponent<UiEntrance>() ?? target.gameObject.AddComponent<UiEntrance>();
             motion.Finish();
@@ -41,7 +41,7 @@ namespace Roi.UI
             float ease = 1 - Mathf.Pow(1-t, 3);
             _group.alpha = Mathf.Clamp01(t * 2);
             _rect.anchoredPosition = _position + Vector2.down * (_distance * (1-ease));
-            _rect.localScale = _scale * Mathf.Lerp(.975f, 1, ease);
+            _rect.localScale = _scale * Mathf.Lerp(.995f, 1, ease);
             if (t >= 1) Finish();
         }
         public void Finish()

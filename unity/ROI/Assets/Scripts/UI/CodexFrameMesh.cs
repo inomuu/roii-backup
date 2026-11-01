@@ -19,7 +19,7 @@ namespace Roi.UI
             }
             r.xMin += 2; r.xMax -= 2; r.yMin += 2; r.yMax -= 2;
             if (r.width <= 0 || r.height <= 0) return;
-            float cut = Primary ? Mathf.Min(22, r.height * .48f) : Mathf.Min(7, r.height * .16f);
+            float cut = Mathf.Min(3, r.height * .08f);
             var p = Corners(r, cut);
             Color top = Primary ? UiTheme.FramePrimary : UiTheme.FrameTop;
             Color bottom = UiTheme.FrameBottom;

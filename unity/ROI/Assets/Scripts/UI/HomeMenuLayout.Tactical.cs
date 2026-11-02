@@ -22,7 +22,8 @@ namespace Roi.UI
             var wallet=HomeWalletBar.Create(_safe,Navigate,true);Place((RectTransform)wallet.transform,.596f,.787f,.973f,.894f);
             string[] utilities={"Options","More","Mail","Mission"};
             for(int i=0;i<utilities.Length;i++){
-                var button=TacticalCard(_safe,utilities[i],"","",.021f,.695f-i*.086f,.065f,.77f-i*.086f,false,true);
+                // Backed by the dark glass card: bare white icons disappeared into the bright artwork.
+                var button=TacticalCard(_safe,utilities[i],"","",.021f,.695f-i*.086f,.065f,.77f-i*.086f);
                 Icon(button.transform,utilities[i]=="More"?"Events":utilities[i],.10f,.08f,.90f,.92f,Color.white);
             }
             _ledger=Panel(_safe,"Expedition",.558f,.110f,.978f,.766f,Color.clear).rectTransform;
@@ -79,6 +80,10 @@ namespace Roi.UI
                 caption.fontStyle=FontStyles.Normal;caption.fontSizeMin=15;caption.fontSizeMax=23;
                 caption.textWrappingMode=TextWrappingModes.NoWrap;
             }
+            // Fade the bottom edge so a half-visible row reads as "scroll for more", not as a
+            // tile sliced in two. Drawn last, above the tiles; never takes clicks.
+            var fade=Panel(area,"ScrollFade",0,0,.985f,.16f,Color.clear);fade.raycastTarget=false;
+            WuwaGradient.Add(fade.transform,new Color(.03f,.032f,.04f,0f),new Color(.03f,.032f,.04f,.95f));
         }
         void RevealHomeMenu()
         {

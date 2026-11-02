@@ -30,7 +30,22 @@ namespace Roi.UI {
         bool dirty=true;
         void OnEnable(){dirty=true;}
         void OnTransformChildrenChanged(){dirty=true;}
-        void LateUpdate(){if(!dirty)return;dirty=false;Refresh();}
+        // Styled buttons, re-checked each frame for keyboard focus and interactable changes —
+        // neither marks the dialog dirty, and both must show.
+        sealed class Tracked { public Button Button; public NoticeButtonGraphic Art; public TMP_Text[] Labels; public int On=-1; }
+        readonly System.Collections.Generic.List<Tracked> tracked=new();
+        void LateUpdate(){
+            if(dirty){dirty=false;Refresh();}
+            var selected=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+            foreach(var t in tracked){
+                if(t.Button==null||t.Art==null)continue;
+                bool focus=t.Button.interactable&&selected==t.Button.gameObject;
+                if(t.Art.Focused!=focus){t.Art.Focused=focus;t.Art.SetVerticesDirty();}
+                int on=t.Button.interactable?1:0;
+                if(t.On==on)continue;t.On=on;
+                foreach(var label in t.Labels)if(label!=null)label.alpha=on==1?1f:.45f;
+            }
+        }
         public void MarkDirty(){dirty=true;}
 
         // A label carrying MEANING in its colour (a price in gold, a warning in red, a rarity)
@@ -48,10 +63,11 @@ namespace Roi.UI {
             panel.sprite=UiTheme.CutFill(8);panel.type=Image.Type.Sliced;panel.color=Glass;
             var frame=transform.Find("WuwaPanel")?.GetComponent<WuwaPanel>();
             if(frame==null){
-                frame=WuwaPanel.Add(transform,14,true);
+                frame=WuwaPanel.Add(transform,14,false);
                 frame.Top=new Color(1,1,1,.035f);frame.Bottom=new Color(1,1,1,0);
                 frame.Edge=UiTheme.WithAlpha(UiTheme.Accent,.32f);frame.TopAccent=true;
             }
+            if(frame.Brackets){frame.Brackets=false;frame.SetVerticesDirty();}
             foreach(var art in GetComponentsInChildren<GameMenuSurface>(true))art.enabled=false;
             foreach(var art in GetComponentsInChildren<HomeCelestialArt>(true))art.enabled=false;
             foreach(var img in GetComponentsInChildren<Image>(true)) {
@@ -108,6 +124,7 @@ namespace Roi.UI {
                     }
                 }
             }
+            tracked.Clear();
             foreach(var button in GetComponentsInChildren<Button>(true)) {
                 if(button.transform==transform)continue;
                 var image=button.GetComponent<Image>();
@@ -176,6 +193,7 @@ namespace Roi.UI {
                 colors.disabledColor=new Color(.5f,.5f,.5f,.7f);
                 colors.colorMultiplier=1;button.colors=colors;
                 art.CrossFadeColor(button.interactable?colors.normalColor:colors.disabledColor,0,true,true);
+                tracked.Add(new Tracked{Button=button,Art=art,Labels=labels});
             }
         }
     }
@@ -186,13 +204,19 @@ namespace Roi.UI {
     // else = dark glass with a hairline and a one-pixel top highlight.
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class NoticeButtonGraphic : MaskableGraphic {
-        public bool Primary;
+        public bool Primary, Focused;
         protected override void OnPopulateMesh(VertexHelper vh) {
             vh.Clear(); var r=GetPixelAdjustedRect();
             r.xMin+=1;r.xMax-=1;r.yMin+=1;r.yMax-=1;
             if(r.width<4||r.height<4)return;
             float cut=Mathf.Clamp(r.height*.22f,4,9);
             var p=WuwaMesh.Cut(r,cut);
+            // Keyboard/gamepad focus: a gold ring standing 3 px off the plate, so it reads
+            // against the dark glass whichever plate (ivory or dark) it surrounds.
+            if(Focused){
+                var ring=new Rect(r.xMin-3,r.yMin-3,r.width+6,r.height+6);
+                WuwaMesh.Outline(vh,WuwaMesh.Cut(ring,cut+1),2f,UiTheme.Accent*color);
+            }
             if(Primary){
                 WuwaMesh.Fill(vh,p,r,UiTheme.IvoryShade*color,UiTheme.Ivory*color);
                 var inner=new Rect(r.xMin+3,r.yMin+3,r.width-6,r.height-6);

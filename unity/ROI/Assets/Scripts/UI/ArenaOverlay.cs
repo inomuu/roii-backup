@@ -246,7 +246,8 @@ namespace Roi.UI
             else if (has)
             {
                 _zoneFill.color = Color.Lerp(Far, Near, ratio);
-                _zoneLabel.text = $"{Mathf.RoundToInt(ratio * 100f)}%";
+                // A bare "9%" said nothing about WHAT is 9% done.
+                _zoneLabel.text = Loc.Fmt("UI_ARENA_BOSS_PROGRESS", Mathf.RoundToInt(ratio * 100f));
             }
             else
             {
@@ -260,7 +261,7 @@ namespace Roi.UI
             int bp = v.loot_gap_mult_bp == 0 ? 10000 : v.loot_gap_mult_bp;
             if (bp < 10000)
             {
-                _loot.text = $"Loot −{(10000 - bp) / 100}%  (level gap)";
+                _loot.text = Loc.Fmt("UI_LOOT_GAP_BADGE", (10000 - bp) / 100);
                 _loot.color = new Color(0.95f, 0.60f, 0.25f);
             }
             else
@@ -286,8 +287,12 @@ namespace Roi.UI
             long hp = Math.Max(0L, Math.Min(boss.hp, max));
             int bars = BossBarCount(boss);
             EnterBossMode(bars);
-            _zoneLabel.text = Loc.Get("UI_ARENA_BOSS") + " · " +
-                              (string.IsNullOrEmpty(boss.name) ? "Boss" : boss.name);
+            // "BOSS · Boss" read as a stutter: only append a name that adds information.
+            string bossWord = Loc.Get("UI_ARENA_BOSS");
+            bool named = !string.IsNullOrEmpty(boss.name) &&
+                         !string.Equals(boss.name.Trim(), bossWord.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                         !string.Equals(boss.name.Trim(), "Boss", StringComparison.OrdinalIgnoreCase);
+            _zoneLabel.text = named ? bossWord + " · " + boss.name : bossWord;
             _bossHpTop.gameObject.SetActive(true);
             _bossHpTop.text = $"{hp:N0} / {max:N0}";
 

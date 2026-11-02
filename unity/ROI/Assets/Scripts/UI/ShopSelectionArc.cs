@@ -12,30 +12,69 @@ namespace Roi.UI
         static readonly float[] Alpha = { 0f, .025f, .09f, .3f, .78f, 1f, .78f, .3f, .09f, .025f, 0f };
         float _selectedOffset = 26f;
         float _normalizedOffset = -1f;
+        // Where the bow is drawn right now (px from top) while it glides to the target.
+        // Finite motion only: the coroutine ends once settled, so a resting arc costs nothing per frame.
+        float _shown, _velocity;
+        bool _hasShown;
+        Coroutine _glide;
+        const float GlideTime = .06f;    // SmoothDamp time: settles in ~0.2 s with no overshoot
 
         public void SelectNormalized(float offsetFromTop)
         {
             offsetFromTop = Mathf.Clamp01(offsetFromTop);
             if (Mathf.Approximately(_normalizedOffset, offsetFromTop)) return;
             _normalizedOffset = offsetFromTop;
-            SetVerticesDirty();
+            BeginGlide();
         }
 
         public void Select(int index)
         {
             float offset = index * 64f + 26f;
+            if (_normalizedOffset < 0f && Mathf.Approximately(offset, _selectedOffset)) return;
             _normalizedOffset = -1f;
-            if (Mathf.Approximately(offset, _selectedOffset)) return;
             _selectedOffset = offset;
-            SetVerticesDirty();
+            BeginGlide();
         }
+
+        float TargetOffset(Rect r) => _normalizedOffset >= 0 ? r.height * _normalizedOffset : _selectedOffset;
+
+        void BeginGlide()
+        {
+            // First placement, hidden objects, reduced motion and companion mode all snap.
+            if (!_hasShown || !isActiveAndEnabled || !UiEntrance.MotionAllowed)
+            {
+                StopGlide(); _velocity = 0f; _hasShown = false;
+                SetVerticesDirty(); return;
+            }
+            if (_glide == null) _glide = StartCoroutine(Glide());
+        }
+
+        System.Collections.IEnumerator Glide()
+        {
+            while (true)
+            {
+                var r = rectTransform.rect;
+                float target = TargetOffset(r);
+                _shown = Mathf.SmoothDamp(_shown, target, ref _velocity, GlideTime, Mathf.Infinity, Time.unscaledDeltaTime);
+                if (Mathf.Abs(target - _shown) < .25f && Mathf.Abs(_velocity) < 4f) { _shown = target; _velocity = 0f; SetVerticesDirty(); break; }
+                SetVerticesDirty();
+                yield return null;
+            }
+            _glide = null;
+        }
+
+        void StopGlide() { if (_glide != null) { StopCoroutine(_glide); _glide = null; } }
+
+        protected override void OnDisable() { StopGlide(); _velocity = 0f; _hasShown = false; base.OnDisable(); }
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             vh.Clear();
             var r = rectTransform.rect;
             if (r.height <= 0f) return;
-            float center = r.yMax - (_normalizedOffset >= 0 ? r.height * _normalizedOffset : _selectedOffset);
+            // Outside a glide the bow sits exactly on the target, including after layout changes.
+            if (_glide == null) { _shown = TargetOffset(r); _hasShown = true; }
+            float center = r.yMax - _shown;
             float seamX = r.xMax - 17f;
             DrawGlow(vh, r, seamX, center);
             DrawSeam(vh, r, seamX, center, true);

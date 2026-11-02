@@ -613,7 +613,7 @@ namespace Roi.UI
             // should be whole and the bar should float on IT, not on the world.
             if (_fade != null && _fadeImg != null)
             {
-                _fade.sizeDelta = new Vector2(0f, inCombat ? 210f : UiLayout.BottomBar);
+                _fade.sizeDelta = new Vector2(0f, inCombat ? 210f : UiLayout.WindowBottom);
                 _fadeImg.sprite = inCombat ? UiTheme.Fade(combat: true) : null;
                 _fadeImg.color = inCombat ? Color.black : UiTheme.Panel;
             }

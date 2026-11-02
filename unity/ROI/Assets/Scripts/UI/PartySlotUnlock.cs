@@ -13,6 +13,9 @@ namespace Roi.UI
             public ulong gil;
             public long slot_cost=-1;
             public int party_slots, party_max, slot_reward_tickets;
+            // Stage whose arrival opens the next slot (-1 = all open). Slots open by progress
+            // since sim 0.0.490, so `slot_cost` is always -1 on current sims.
+            public long slot_next=-1;
         }
         public static Meta Read(SimSession session)
             => session==null ? null : ForgeModel.Parse<Meta>(session.QueryJson("party_meta"));
@@ -38,20 +41,24 @@ namespace Roi.UI
         int _index;
         Button _button;
         TMP_Text _label;
+        CanvasGroup _group;
         float _next,_noticeUntil;
         string _notice;
         public static PartySlotUnlock Create(RectTransform parent,int index)
         {
-            var bg=UiTheme.Flat(parent,"PartySlotUnlock",new Color(.055f,.07f,.09f,.84f));
+            var bg=UiTheme.Box(parent,"PartySlotUnlock",new Color(.055f,.07f,.09f,.84f),8);
+            bg.sprite=UiTheme.CutFill(8); // WuWa idiom: chamfered, matching every other card
             var rt=bg.rectTransform; rt.anchorMin=Vector2.zero;rt.anchorMax=Vector2.one;rt.offsetMin=rt.offsetMax=Vector2.zero;
-            UiTheme.Border(rt,UiTheme.Line);
+            UiTheme.Border(rt,UiTheme.Line).sprite=UiTheme.CutFrame(8);
             var self=bg.gameObject.AddComponent<PartySlotUnlock>();self._index=index;
             self._button=bg.gameObject.AddComponent<Button>();self._button.targetGraphic=bg;
             self._button.onClick.AddListener(self.Buy);
-            self._label=UiTheme.Label(rt,"UnlockLabel","",11,UiTheme.TextMid,TextAlignmentOptions.Center);
+            self._group=bg.gameObject.AddComponent<CanvasGroup>();
+            self._label=UiTheme.Label(rt,"UnlockLabel","",13,UiTheme.TextMid,TextAlignmentOptions.Center);
             var lr=self._label.rectTransform;lr.anchorMin=Vector2.zero;lr.anchorMax=Vector2.one;
-            lr.offsetMin=new Vector2(5,3);lr.offsetMax=new Vector2(-5,-3);
-            self._label.enableAutoSizing=true;self._label.fontSizeMin=7;self._label.fontSizeMax=11;
+            lr.offsetMin=new Vector2(8,4);lr.offsetMax=new Vector2(-8,-4);
+            // 7px text was unreadable over grass; 11px is the floor for HUD copy.
+            self._label.enableAutoSizing=true;self._label.fontSizeMin=11;self._label.fontSizeMax=14;
             self._label.textWrappingMode=TextWrappingModes.Normal;self._label.raycastTarget=false;
             self.Refresh();return self;
         }
@@ -63,11 +70,28 @@ namespace Roi.UI
             _button.interactable=m!=null&&_index==m.party_slots&&PartySlotPurchase.CanBuy(m);
             if(Time.unscaledTime<_noticeUntil){_label.text=_notice;return;}
             if(m==null){_label.text="";return;}
-            if(_index<m.party_slots){_label.text=Loc.Get("UI_PARTY_SLOT_EMPTY");return;}
-            _label.text=_index==m.party_slots
-                ? Loc.Fmt("UI_PARTY_SLOT_UNLOCK",UiNumber.Exact((ulong)Math.Max(0,m.slot_cost)))+"\n"+Loc.Fmt("UI_PARTY_SLOT_REWARD",m.slot_reward_tickets)
-                : Loc.Get("UI_PARTY_SLOT_PREVIOUS");
-            _label.color=_button.interactable?ForgeUi.Gold:UiTheme.TextLow;
+            // Three states, three weights: an open slot is a call to action, the NEXT slot says
+            // exactly what opens it, and every slot after that is a quiet lock so the strip does
+            // not repeat the same sentence over the battlefield.
+            if(_index<m.party_slots){Show(Loc.Get("UI_PARTY_SLOT_EMPTY"),UiTheme.TextHigh,1f);return;}
+            if(_index==m.party_slots)
+            {
+                string reward=Loc.Fmt("UI_PARTY_SLOT_REWARD",m.slot_reward_tickets);
+                if(m.slot_cost>=0)
+                    Show(Loc.Fmt("UI_PARTY_SLOT_UNLOCK",UiNumber.Exact((ulong)m.slot_cost))+"\n"+reward,
+                         _button.interactable?ForgeUi.Gold:UiTheme.TextMid,1f);
+                else if(m.slot_next>0)
+                    Show(Loc.Fmt("UI_PARTY_SLOT_STAGE",m.slot_next)+"\n"+reward,UiTheme.TextMid,.9f);
+                else Show(Loc.Get("UI_CMDR_LOCKED"),UiTheme.TextLow,.5f);
+                return;
+            }
+            Show(Loc.Get("UI_CMDR_LOCKED"),UiTheme.TextLow,.45f);
+        }
+
+        void Show(string text,Color color,float alpha)
+        {
+            _label.text=text;_label.color=color;
+            if(_group!=null)_group.alpha=alpha;
         }
         void Buy()
         {

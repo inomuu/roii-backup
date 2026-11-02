@@ -83,8 +83,11 @@ namespace Roi.UI
             var t = UiTheme.Label(pr, "Title", title, 28, accent,
                                  TextAlignmentOptions.Left);
             UiTheme.Display(t);Row(t, ref y, 48f);
+            // DialogSurface hangs a divider just under the title; leave it room so it never
+            // strikes through the first line of the body.
+            y += UiTheme.PadSmall;
             var b = UiTheme.Label(pr, "Body", body, UiTheme.BodySize, UiTheme.TextMid,
-                                  TextAlignmentOptions.TopLeft);
+                                  TextAlignmentOptions.Top);
             b.textWrappingMode = TextWrappingModes.Normal;
             b.overflowMode = TextOverflowModes.Overflow;
             // A FIXED wrap width. An auto-wrapping label whose width is not pinned measures its

@@ -18,7 +18,7 @@ namespace Roi.UI {
     bool ready=online&&!_catalogPreview&&BannerOpen(b)&&!_requestInFlight&&_quoteCount==0&&string.IsNullOrEmpty(_lastPulls)&&(string.IsNullOrEmpty(_pendingKey)||_pendingCount==count);
     button.interactable=ready;
     var label=button.transform.Find("Label")?.GetComponent<TextMeshProUGUI>();
-    if(label!=null){label.text=Loc.Get(_requestInFlight?"UI_EXCAVATION_WAIT":"UI_EXCAVATION_EXCAVATE");label.enableAutoSizing=true;label.fontSizeMin=14;label.fontSizeMax=22;label.color=ready?(count==10?UiTheme.Accent:UiTheme.TextHigh):UiTheme.TextMid;}
+    if(label!=null){label.text=_requestInFlight?Loc.Get("UI_EXCAVATION_WAIT"):string.Format(Loc.Get("UI_EXCAVATION_PULL"),count);label.enableAutoSizing=true;label.fontSizeMin=14;label.fontSizeMax=21;label.color=ready?Ivory:UiTheme.TextMid;}
     var ticket=button.transform.Find("Ticket")?.GetComponent<HomeCurrencyIcon>();
     if(ticket!=null)ticket.color=ready?HomeCurrencyIcon.TicketColor:new Color(.58f,.57f,.52f,1);
     var hint=button.transform.Find("ActionHint")?.GetComponent<TextMeshProUGUI>();
@@ -36,21 +36,16 @@ namespace Roi.UI {
    bool locked=!disconnected&&!BannerOpen(banner);
    bool notice=disconnected||locked;
    bool progress=!notice&&banner!=null&&banner.has_pity&&banner.hard>0;
-   float height=notice||progress?120:80;
-   _termsCard.sizeDelta=new Vector2(376,height);
-   _termsTitle.gameObject.SetActive(notice);
-   _guaranteeDetail.gameObject.SetActive(!notice);
-   if(_pityGroup!=null)_pityGroup.gameObject.SetActive(progress);
+   // The guarantee itself is in the summary above the divider; below it only a notice or the pity ladder.
    _termsTitle.text=Loc.Get(disconnected?"UI_NOTICE_CONNECTION":"UI_EXCAVATION_LOCKED");
-   _terms.text=disconnected?Loc.Get("UI_EXCAVATION_CONNECTION_HELP"):
-     locked?Loc.Get("UI_EXCAVATION_LOCKED_HELP"):
-     progress?string.Format(Loc.Get("UI_EXCAVATION_GUARANTEE"),banner.hard):Loc.Get("UI_EXCAVATION_NO_PITY");
-   _terms.fontSize=notice?16:18;
-   _terms.color=notice?UiTheme.TextMid:UiTheme.TextHigh;
-   Place(_terms.rectTransform,22,notice?48:19,notice?332:289,notice?56:50);
-   foreach(var action in new[]{_probabilityAction,_detailsAction}) {
-    if(action!=null)action.anchoredPosition=new Vector2(action.anchoredPosition.x,-(342+height+18));
-   }
+   _terms.text=Loc.Get(disconnected?"UI_EXCAVATION_CONNECTION_HELP":"UI_EXCAVATION_LOCKED_HELP");
+   float titleHeight=_termsTitle.GetPreferredValues(_termsTitle.text,232,Mathf.Infinity).y;
+   float height=notice?titleHeight+6+_terms.GetPreferredValues(_terms.text,232,Mathf.Infinity).y:progress?30:0;
+   _termsCard.sizeDelta=new Vector2(232,Mathf.Max(height,1));
+   _termsTitle.gameObject.SetActive(notice);_terms.gameObject.SetActive(notice);
+   if(_pityGroup!=null)_pityGroup.gameObject.SetActive(progress);
+   Place(_terms.rectTransform,0,titleHeight+6,232,60);
+   if(_detailsAction!=null)_detailsAction.anchoredPosition=new Vector2(_detailsAction.anchoredPosition.x,-(TermsTop+height+(height>0?10:-4)));
   }
   void BannerDetails(Banner b) {
    UiConfirm.ExcavationSheet(Loc.Get("UI_EXCAVATION_DETAILS"),host=>{

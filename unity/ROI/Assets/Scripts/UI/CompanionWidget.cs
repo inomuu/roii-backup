@@ -178,7 +178,7 @@ namespace Roi.UI
             if (_arena == null) _arena = Object.FindFirstObjectByType<Roi.Arena.ArenaView>();
             while (_panes.Count < MaxPanes)
             {
-                var box = UiTheme.Box(_root, "Pane" + _panes.Count, Color.black, 6);
+                var box = UiTheme.Box(_root, "Pane" + _panes.Count, UiTheme.Panel, 6);
                 UiTheme.Border(box.rectTransform, UiTheme.Line, 6);
                 var img = new GameObject("View", typeof(RectTransform)).AddComponent<RawImage>();
                 img.transform.SetParent(box.rectTransform, false);

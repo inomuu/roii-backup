@@ -142,10 +142,6 @@ namespace Roi.UI
             var r=icon.rectTransform;r.anchorMin=r.anchorMax=new Vector2(0,.5f);r.anchoredPosition=new Vector2(28,0);r.sizeDelta=new Vector2(24,24);
             _titleText.rectTransform.offsetMin=new Vector2(58,0);
             bar.Find("TitleTick").GetComponent<RectTransform>().anchoredPosition=new Vector2(58,0);
-            // The screen icon sits in a thin ring, as WuWa's menu heads do.
-            var ringGo=new GameObject("IconRing",typeof(RectTransform));ringGo.transform.SetParent(bar,false);ringGo.transform.SetSiblingIndex(go.transform.GetSiblingIndex());
-            var ring=ringGo.AddComponent<WuwaActionGlyph>();ring.Confirm=true;ring.Weight=1.2f;ring.raycastTarget=false;ring.color=UiTheme.WithAlpha(UiTheme.Accent,.45f);
-            var ringR=ring.rectTransform;ringR.anchorMin=ringR.anchorMax=new Vector2(0,.5f);ringR.anchoredPosition=new Vector2(30,0);ringR.sizeDelta=new Vector2(48,48);
             r.anchoredPosition=new Vector2(30,0);
             if(_modal)_titleText.rectTransform.offsetMax=new Vector2(-60,0);
             if(id=="Cards"||id=="Album") {
@@ -191,7 +187,9 @@ namespace Roi.UI
             }
             _root.SetActive(on);
             if(_modalShade!=null)_modalShade.SetActive(on);
-            if (on) { Opened?.Invoke(); UiPageTransition.Play(Body); StartCoroutine(RestoreScroll()); }
+            // A whole screen arriving earns the fuller entrance (slide + scale + fade); a screen's
+            // own tab/detail refreshes stay on UiPageTransition's quick dissolve — see UiEntrance.
+            if (on) { Opened?.Invoke(); UiEntrance.Play(Body); StartCoroutine(RestoreScroll()); }
         }
 
         System.Collections.IEnumerator RestoreScroll()
@@ -200,6 +198,8 @@ namespace Roi.UI
             if(!IsOpen)yield break;
             Canvas.ForceUpdateCanvases();
             foreach(var pair in _scrollPositions)if(pair.Key!=null){pair.Key.StopMovement();pair.Key.normalizedPosition=pair.Value;}
+            // One frame in, the page has built its lists: fade their rows in one after another.
+            foreach(var scroll in Body.GetComponentsInChildren<ScrollRect>(false))UiStagger.Play(scroll.content);
         }
 
         /// A screen has taken the body over; the "not ported yet" note goes away.

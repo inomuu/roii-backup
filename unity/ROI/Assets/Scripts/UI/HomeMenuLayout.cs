@@ -25,7 +25,8 @@ namespace Roi.UI
             h._font=Loc.Language=="th" ? UiTheme.Font : Resources.Load<TMP_FontAsset>("HomeUI/HomeSerif") ?? UiTheme.DisplayFont;
             var rt=(RectTransform)root.transform;Place(rt,0,0,1,1);
             h.Compose(rt);
-            UiPageTransition.Play(rt);
+            UiEntrance.Play(rt); // the home screen arriving is a whole-screen event, not a refresh
+            if(h._homeMenu!=null)UiStagger.Play(h._homeMenu.content); // menu tiles cascade in
         }
         TextMeshProUGUI _expedition, _battleState;
         Button _battle;
@@ -192,6 +193,7 @@ namespace Roi.UI
                 selectOnDown=choices[(i+1)%choices.Count]
             };
             first?.Select();
+            UiEntrance.Play(panel.rectTransform);
         }
 
         void OpenNews()
@@ -204,6 +206,7 @@ namespace Roi.UI
             Text(panel.transform,"Version",Loc.Fmt("UI_TITLE_RELEASE",Roi.Sim.SimSession.SimVersion()),.08f,.61f,.92f,.76f,26,Gold);
             Text(panel.transform,"Body",Loc.Get("UI_TITLE_RELEASE_NOTES"),.08f,.22f,.92f,.59f,26,Ivory);
             var close=HudBar.MakeButton(panel.transform,Loc.Get("UI_COMMON_CANCEL"),"",200,48,()=>CloseGroup());Place((RectTransform)close.transform,.55f,.04f,.92f,.19f);
+            UiEntrance.Play(panel.rectTransform);
         }
         public bool CloseGroup()
         {

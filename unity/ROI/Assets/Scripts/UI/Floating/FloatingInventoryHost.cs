@@ -54,7 +54,8 @@ namespace Roi.UI
         ExemplarEquipmentActions.Snapshot _equipment;
         SimSession _lastSession;
         readonly InventoryNoticeState _inventoryNotices=new();
-        Vector2 _battlePosition=new(-160,45),_companionPosition=Vector2.zero;
+        // y=90 keeps the frame's bottom edge above the combat bar's party-slot cards (45 overlapped them).
+        Vector2 _battlePosition=new(-160,90),_companionPosition=Vector2.zero;
         // Three rows of core gear; the bottom two rows are accessories (two on each side).
         static readonly string[] Slots={"Weapon","Helmet","Armor","Ring","Necklace","Shield","Gloves","Shoes","Earring","Bracer"};
         public static FloatingInventoryHost Create(Transform parent)

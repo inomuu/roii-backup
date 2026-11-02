@@ -7,7 +7,7 @@ namespace Roi.UI
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class TitleGlyph : MaskableGraphic
     {
-        public enum Symbol { Settings, News, Support, Account, Globe, Chevron, Close, Bag, Book, Shop, Star, Mail, Party, Flag, Exit, Tools }
+        public enum Symbol { Settings, News, Support, Account, Globe, Chevron, Close, Bag, Book, Shop, Star, Mail, Party, Flag, Exit, Tools, Help }
         public Symbol Kind;
         public bool Ring;
         public static TitleGlyph Add(Transform parent, Symbol kind, bool ring = false)
@@ -32,6 +32,11 @@ namespace Roi.UI
                     Path(vh,new Vector2(-18,-18),new Vector2(12,12),new Vector2(18,12),new Vector2(22,19));
                     Path(vh,new Vector2(12,12),new Vector2(10,18),new Vector2(13,23));
                     Path(vh,new Vector2(-19,19),new Vector2(19,-19));Arc(vh,new Vector2(-16,16),5,5,0,360);break;
+                case Symbol.Help: // question mark in a ring
+                    Arc(vh,Vector2.zero,20,20,0,360);
+                    Arc(vh,new Vector2(0,6),7,7,-60,180);
+                    Path(vh,new Vector2(3.5f,-0.1f),new Vector2(0,-3),new Vector2(0,-7));
+                    Arc(vh,new Vector2(0,-12.5f),1.2f,1.2f,0,360,2.4f);break;
                 case Symbol.Bag:
                     Path(vh,new Vector2(-16,-16),new Vector2(-14,9),new Vector2(14,9),new Vector2(16,-16),new Vector2(-16,-16));
                     Arc(vh,new Vector2(0,9),7,8,0,180);break;

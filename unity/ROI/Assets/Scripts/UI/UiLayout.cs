@@ -16,6 +16,9 @@ namespace Roi.UI
         /// Chrome reserved at the bottom: the action bar. The roster docks above it in combat, but
         /// no window is open then, so a window never has to account for it.
         public const float BottomBar = 76f;
+        /// Space a management window leaves at the bottom. Zero: the action bar is hidden while a
+        /// window is open (HudBar.SyncActiveStates), so reserving BottomBar left an empty strip.
+        public const float WindowBottom = 0f;
 
         /// A window is FULL-BLEED horizontally. Kept as a named zero rather than deleted: the
         /// argument for margins comes back every time someone sees the layout on a wide monitor,
@@ -34,8 +37,8 @@ namespace Roi.UI
             float top = Top + extraTop;
             // Max: a window on a very short viewport would otherwise be handed a negative height,
             // which draws inside-out.
-            float h = Mathf.Max(0f, vp.y - BottomBar - top);
-            return new Rect(x, BottomBar, vp.x - 2f * x, h);
+            float h = Mathf.Max(0f, vp.y - WindowBottom - top);
+            return new Rect(x, WindowBottom, vp.x - 2f * x, h);
         }
 
         /// Y of the top of the action bar — for things that DOCK to it rather than fill the screen.

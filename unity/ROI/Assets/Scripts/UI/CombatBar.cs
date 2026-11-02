@@ -259,7 +259,13 @@ namespace Roi.UI
                     _seraphineArt ??= Resources.Load<Texture2D>("CombatPortraits/Seraphine");
                     m.Illustration.SetTexture(_seraphineArt);
                 }
-                else m.SpritePortrait.sprite = ExemplarPortrait.Avatar(e.unit_def);
+                else
+                {
+                    // A unit with no avatar yet must show nothing: an Image with no sprite draws
+                    // as a solid white box over the HUD.
+                    m.SpritePortrait.sprite = ExemplarPortrait.Avatar(e.unit_def);
+                    m.SpritePortrait.gameObject.SetActive(m.SpritePortrait.sprite != null);
+                }
             }
             long max = e.eff_max_hp > 0 ? e.eff_max_hp : e.max_hp;
             m.TargetHealth = max > 0 ? Mathf.Clamp01(e.hp / (float)max) : 0f;

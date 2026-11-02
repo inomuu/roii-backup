@@ -85,7 +85,7 @@ namespace Roi.UI
 #else
             false;
 #endif
-        Image _busyTrack, _busyFill;
+        WuwaLoadingBar _busyTrack;
 
         bool _busy;
 
@@ -130,6 +130,7 @@ namespace Roi.UI
             HideLanding();
             if (_signIn != null) _signIn.gameObject.SetActive(false);
             if (_creation != null) _creation.gameObject.SetActive(true);
+            OpenPanelMotion(_creation);
             foreach (var part in _logoParts) part.SetActive(false);
             if (_partyField != null && string.IsNullOrEmpty(_partyField.text))
                 _partyField.text = PartyNames[UnityEngine.Random.Range(0, PartyNames.Length)];
@@ -175,6 +176,7 @@ namespace Roi.UI
             BuildCreation();
             BuildFooter(endpoint);
             LayoutLanding();
+            PlayIntro();
         }
 
         void BuildBackdrop()
@@ -182,10 +184,12 @@ namespace Roi.UI
             var go = new GameObject("TitleBackdrop", typeof(RectTransform));
             go.transform.SetParent(_root, false);
             _backdrop = go.AddComponent<RawImage>();
-            _backdrop.texture = Resources.Load<Texture2D>("TitleUI/Backdrop-Muted-v4");
+            _backdrop.texture = Resources.Load<Texture2D>("TitleUI/Backdrop-Moonlit-v5");
             _backdrop.color = Color.white;
             _backdrop.raycastTarget = true;
             Stretch(_backdrop.rectTransform);
+            go.AddComponent<UiBackdropDrift>();
+            MenuAtmosphere.Create(_root);   // drifting motes over the painting
             var shade = UiTheme.Flat(_root,"BackdropShade",new Color(.01f,.02f,.04f,.06f));
             Stretch(shade.rectTransform); shade.raycastTarget=false;
             var fade=UiTheme.Flat(_root,"Floor",Color.white);
@@ -210,26 +214,28 @@ namespace Roi.UI
             _landing=Rect(_root,"Landing"); Stretch(_landing);
             _tapCatcher=QuietButton(_landing,"TapGate",Loc.Get("UI_TITLE_START_GAME"),OpenSignIn);
             _tapLabel=_tapCatcher.GetComponentInChildren<TextMeshProUGUI>();
-            _tapLabel.fontSize=22;
-            _tapLabel.color=new Color(.94f,.98f,.97f,1);
+            _tapLabel.fontSize=20;
+            // Gold accent marks this as the screen's one primary action.
+            _tapLabel.color=UiTheme.Accent;
             // All decoration shares the button centre and symmetric bounds.
             var backing=Rect(_tapCatcher.transform,"StartBacking").gameObject.AddComponent<TitleEdgeFade>();
-            backing.color=new Color(.14f,.16f,.17f,.5f);
+            backing.color=new Color(.06f,.07f,.08f,.55f);
             backing.raycastTarget=false; backing.transform.SetAsFirstSibling();
             Stretch(backing.rectTransform);
             Pin(_tapLabel.rectTransform,Vector2.zero,new Vector2(480,64));
             _tapLabel.alignment=TextAlignmentOptions.Midline;
             foreach(float y in new[]{-18f,18f}) {
                 var line=Rect(_tapCatcher.transform,y>0?"StartTop":"StartRule").gameObject.AddComponent<TitleEdgeFade>();
-                line.color=new Color(.72f,.76f,.74f,.55f);
+                line.color=UiTheme.WithAlpha(UiTheme.Accent,.45f);
                 line.raycastTarget=false;
                 var lr=line.rectTransform; lr.anchorMin=new Vector2(0,.5f); lr.anchorMax=new Vector2(1,.5f); lr.sizeDelta=new Vector2(0,1.5f); lr.anchoredPosition=new Vector2(0,y);
             }
             var mark=TitleGlyph.Add(_tapCatcher.transform,TitleGlyph.Symbol.Star);
-            mark.color=new Color(.88f,.91f,.82f,1);
-            Pin(mark.rectTransform,new Vector2(-155,0),new Vector2(20,20));
+            mark.color=UiTheme.WithAlpha(UiTheme.Accent,.85f);
+            Pin(mark.rectTransform,new Vector2(-135,0),new Vector2(16,16));
             var twin=TitleGlyph.Add(_tapCatcher.transform,TitleGlyph.Symbol.Star);twin.color=mark.color;
-            Pin(twin.rectTransform,new Vector2(155,0),new Vector2(20,20));
+            Pin(twin.rectTransform,new Vector2(135,0),new Vector2(16,16));
+            _startStars=new[]{mark,twin};
         }
 
         void BuildSignIn(string accountName)
@@ -358,18 +364,11 @@ namespace Roi.UI
         /// database wake-up; without a moving thing the wait reads as a hang.
         void BuildBusyBar()
         {
-            _busyTrack = UiTheme.Flat(_root, "BusyTrack", new Color(1f, 1f, 1f, 0.18f));
+            var go = new GameObject("BusyTrack", typeof(RectTransform));
+            go.transform.SetParent(_root, false);
+            _busyTrack = go.AddComponent<WuwaLoadingBar>();
             _busyTrack.raycastTarget = false;
-            Pin(_busyTrack.rectTransform, new Vector2(0f, -276f), new Vector2(PanelW - 48f, 2f));
-
-            _busyFill = UiTheme.Flat(_busyTrack.rectTransform, "Fill", Color.white);
-            _busyFill.raycastTarget = false;
-            var fr = _busyFill.rectTransform;
-            fr.anchorMin = new Vector2(0f, 0f); fr.anchorMax = new Vector2(0f, 1f);
-            fr.pivot = new Vector2(0f, 0.5f);
-            fr.sizeDelta = new Vector2(120f, 0f);
-            var tip=TitleGlyph.Add(_busyFill.transform,TitleGlyph.Symbol.Star);
-            tip.color=Color.white;tip.rectTransform.anchorMin=tip.rectTransform.anchorMax=new Vector2(1,.5f);tip.rectTransform.sizeDelta=new Vector2(24,24);
+            Pin(_busyTrack.rectTransform, new Vector2(0f, -276f), new Vector2(PanelW - 48f, 12f));
             _busyTrack.gameObject.SetActive(false);
         }
 
@@ -433,7 +432,7 @@ namespace Roi.UI
             // The build, where a support question can read it off a screenshot. A version skew is
             // the single likeliest reason a login fails, so it is on the login screen.
             _version = UiTheme.Label(_root, "Version",
-                                     Roi.Sim.SimSession.SimVersion(), 16f,
+                                     Roi.Sim.SimSession.SimVersion(), 13f,
                                      UiTheme.TextLow, TextAlignmentOptions.Left);
             var vr = _version.rectTransform;
             vr.anchorMin = vr.anchorMax = new Vector2(1f, 1f);
@@ -451,6 +450,7 @@ namespace Roi.UI
             if (_busy || _signIn == null || _signIn.gameObject.activeSelf || _popup != null) return;
             HideLanding();
             _signIn.gameObject.SetActive(true);
+            OpenPanelMotion(_signIn);
             if (_tapLabel != null) _tapLabel.gameObject.SetActive(false);
             if (_tapCatcher != null) _tapCatcher.gameObject.SetActive(false);
             FocusFirst(_signInOrder);
@@ -458,18 +458,12 @@ namespace Roi.UI
 
         void Update()
         {
+            UpdateTitleMotion();
             var keyboard = Keyboard.current;
             if (UpdateLandingInput(keyboard)) return;
             if (!_busy && keyboard != null && keyboard.tabKey.wasPressedThisFrame)
                 MoveFocus(_creation != null && _creation.gameObject.activeSelf ? _creationOrder : _signInOrder,
                     keyboard.shiftKey.isPressed ? -1 : 1);
-            if (_busy && _busyTrack != null && _busyFill != null)
-            {
-                float w = _busyTrack.rectTransform.rect.width;
-                float span = w + 120f;
-                float x = Mathf.Repeat(Time.unscaledTime * 220f, span) - 120f;
-                _busyFill.rectTransform.anchoredPosition = new Vector2(x, 0f);
-            }
         }
 
         // Scope keyboard navigation to the visible title form, never to the HUD behind it.

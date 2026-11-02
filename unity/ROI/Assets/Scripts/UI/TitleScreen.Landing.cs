@@ -39,15 +39,34 @@ namespace Roi.UI
             _serverEndpoint = Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
                 (uri.Scheme == "https" || uri.Scheme == "http") ? endpoint : Roi.Net.OnlineService.ServerUrl;
             _rail=Rect(_landing,"UtilityRail");
-            Pin(_rail,Vector2.zero,new Vector2(100,390));
+            Pin(_rail,Vector2.zero,new Vector2(RailW,RailStep*5+RailExitGap));
+            var news=RailButton("News", "UI_TITLE_NEWS",TitleGlyph.Symbol.News,0,OpenNews);
+            var support=RailButton("Support", "UI_TITLE_SUPPORT",TitleGlyph.Symbol.Help,1,OpenSupport);
+            var account=RailButton("Account","UI_TITLE_ACCOUNT",TitleGlyph.Symbol.Account,2,OpenSignIn);
             var settings=RailButton("Settings", "UI_TITLE_SETTINGS",TitleGlyph.Symbol.Settings,3,OpenSettings);
-            var news=RailButton("News", "UI_TITLE_NEWS",TitleGlyph.Symbol.News,1,OpenNews);
-            var support=RailButton("Support", "UI_TITLE_SUPPORT",TitleGlyph.Symbol.Tools,2,OpenSupport);
-
-            var exit=RailButton("Exit","UI_TITLE_EXIT",TitleGlyph.Symbol.Exit,0,ExitTitle);
-            RegisterFocus(_landingOrder,_tapCatcher,exit,news,support,settings);
-
+            // Exit is destructive: last in the rail, set apart by a gap and a short rule.
+            var divider=UiTheme.Flat(_rail,"ExitDivider",UiTheme.LineStrong); divider.raycastTarget=false;
+            Anchor(divider.rectTransform,new Vector2(0,-4*RailStep-RailExitGap*.5f+2),new Vector2(36,1)); // centred in the gap above Exit
+            var exit=RailButton("Exit","UI_TITLE_EXIT",TitleGlyph.Symbol.Exit,4,ExitTitle,RailExitGap);
+            RegisterFocus(_landingOrder,_tapCatcher,news,support,account,settings,exit);
+            BuildServerPill();
         }
+
+        // Which server this title signs in to, in the slot a gacha title uses for its region.
+        // Display only: there is one server, so a tappable picker would be a dead control.
+        void BuildServerPill()
+        {
+            var pill=UiTheme.Flat(_landing,"ServerPill",new Color(.04f,.05f,.06f,.55f));
+            pill.sprite=UiTheme.CutFill(4); pill.type=Image.Type.Sliced; pill.raycastTarget=false;
+            _serverPill=pill.rectTransform;
+            // Neutral styling: the gold accent belongs to the Start Game call to action.
+            UiTheme.Border(_serverPill,UiTheme.LineStrong);
+            var label=UiTheme.Label(_serverPill,"Label",Loc.Get("UI_TITLE_SERVER_MAIN"),15,UiTheme.TextMid,TextAlignmentOptions.Center);
+            label.raycastTarget=false; Stretch(label.rectTransform);
+        }
+
+        RectTransform _serverPill;
+        const float RailW=96f, RailStep=64f, RailExitGap=24f;
 
         static void ExitTitle(){
 #if UNITY_EDITOR
@@ -57,16 +76,17 @@ namespace Roi.UI
 #endif
         }
 
-        Button RailButton(string name,string key,TitleGlyph.Symbol symbol,int row,Action click)
+        Button RailButton(string name,string key,TitleGlyph.Symbol symbol,int row,Action click,float extraOffset=0f)
         {
             var button=QuietButton(_rail,name,Loc.Get(key),click);
-            Anchor((RectTransform)button.transform,new Vector2(0,-row*72),new Vector2(100,68));
+            // 96x60 hit area keeps the target generous while the visible mark stays small.
+            Anchor((RectTransform)button.transform,new Vector2(0,-row*RailStep-extraOffset),new Vector2(RailW,60));
             var label=button.GetComponentInChildren<TextMeshProUGUI>();
-            label.fontSize=16;
-            Pin(label.rectTransform,new Vector2(0,-16),new Vector2(100,24));
+            label.fontSize=13;
+            Pin(label.rectTransform,new Vector2(0,-15),new Vector2(RailW,20));
             var icon=TitleGlyph.Add(button.transform,symbol,false);
             icon.color=new Color(.92f,.96f,.96f,1);
-            Pin(icon.rectTransform,new Vector2(0,10),new Vector2(46,46));
+            Pin(icon.rectTransform,new Vector2(0,9),new Vector2(30,30));
             return button;
         }
 
@@ -118,9 +138,11 @@ namespace Roi.UI
 
         void HideLanding()
         {
+            bool shadeWasHidden=!_modalShade.gameObject.activeSelf;
             _landing.gameObject.SetActive(false);
             foreach(var part in _logoParts) part.SetActive(false);
             _modalShade.gameObject.SetActive(true);
+            if(shadeWasHidden) FadeShadeIn();
         }
 
         void StyleFantasySignIn(Image panel,TMP_Text heading,TMP_Text fieldLabel,bool steam)
@@ -166,7 +188,10 @@ namespace Roi.UI
             _landing.gameObject.SetActive(true);
             _tapCatcher.gameObject.SetActive(true); _tapLabel.gameObject.SetActive(true);
             foreach(var part in _logoParts) part.SetActive(true);
-            SetStatus(""); _tapCatcher.Select();
+            PlayEntrance((RectTransform)_tapCatcher.transform,0f,.25f,8f);
+            // Nothing pre-selected: the focus ring appears only once the player uses Tab.
+            // Enter/Space still start the game with no selection (UpdateLandingInput).
+            SetStatus(""); EventSystem.current?.SetSelectedGameObject(null);
         }
 
         RectTransform OpenPopup(string key)
@@ -183,6 +208,7 @@ namespace Roi.UI
             AddClose(_popup,_popupOrder);
             SetStatus("");
             FocusFirst(_popupOrder);
+            OpenPanelMotion(_popup);
             return _popup;
         }
 
@@ -270,6 +296,7 @@ namespace Roi.UI
             _rail.anchoredPosition=new Vector2(-8,-h*.09f);
             _logo.anchorMin=_logo.anchorMax=_logo.pivot=new Vector2(0,1); _logo.anchoredPosition=new Vector2(22,-22); _logo.sizeDelta=new Vector2(84,36);
             Pin((RectTransform)_tapCatcher.transform,new Vector2(0,-h*.5f+h*.043f),new Vector2(w*.77f,38));
+            Pin(_serverPill,new Vector2(0,-h*.5f+h*.043f+80),new Vector2(200,34));
             if(_backdrop!=null && _backdrop.texture!=null)
             {
                 float imageAspect=(float)_backdrop.texture.width/_backdrop.texture.height;
@@ -282,7 +309,7 @@ namespace Roi.UI
 
         bool UpdateLandingInput(Keyboard keyboard)
         {
-            if(_lastScreen.x!=Screen.width || _lastScreen.y!=Screen.height || _lastSafe!=Screen.safeArea)LayoutLanding();
+            if(_lastScreen.x!=Screen.width || _lastScreen.y!=Screen.height || _lastSafe!=Screen.safeArea){FinishIntro();LayoutLanding();}
             if(_busy || keyboard==null)return _popup!=null;
             if(keyboard.escapeKey.wasPressedThisFrame && (_popup!=null || _signIn.gameObject.activeSelf))
             { ReturnToLanding(); return true; }

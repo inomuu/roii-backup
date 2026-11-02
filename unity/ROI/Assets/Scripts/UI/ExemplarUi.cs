@@ -52,7 +52,7 @@ namespace Roi.UI
             UiButtonFeedback.Add(b);
 
 
-            var l=Text(im.transform,"Label",value,.075f,.08f,.925f,.92f,20,bright?Gold:White,TextAlignmentOptions.Center);
+            var l=Text(im.transform,"Label",value,.075f,.08f,.925f,.92f,20,bright?UiTheme.OnAccent:White,TextAlignmentOptions.Center);
             return b;
         }
         public static void Icon(Transform p,string id,float x,float y,float r,float t,Color color)

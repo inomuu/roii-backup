@@ -44,13 +44,16 @@ namespace Roi.UI
             return close;
           }
           var im=CodexButtonImage.Create(p,key,accent); Place(im.rectTransform,x,y,w,h);
+          // Inside a dialog, the accent button is the action being asked for.
+          if(accent)im.gameObject.AddComponent<UiPrimaryAction>();
           var b=im.gameObject.AddComponent<UiStateButton>();b.targetGraphic=im;b.onClick.AddListener(()=>onClick?.Invoke());
           b.navigation=new Navigation{mode=Navigation.Mode.None};
           b.colors=UiTheme.ButtonColors;
           UiButtonFeedback.Add(b);
           float inset=w<50?3:10;
           var text=Copy(im.transform,key,inset,2,w-inset*2,h-4,13);Display(text,13);
-          if(accent){Heading(text,16);text.color=UiTheme.Accent;}
+          // Accent buttons draw on an ivory fill (CodexFrameMesh Primary): gold text vanished on it.
+          if(accent){Heading(text,16);text.color=UiTheme.OnAccent;}
           text.enableAutoSizing=true;text.fontSizeMin=12;text.fontSizeMax=accent?16:14;
           text.alignment=TextAlignmentOptions.Center;return b;
         }
